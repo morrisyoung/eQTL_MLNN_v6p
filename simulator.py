@@ -43,7 +43,7 @@ Y_pos = []					# list of pos of genes
 mapping_cis = []			# list of (index start, index end)
 Z = []						# matrix of Individuals x Batches
 ## NOTE: the following have the intercept term
-beta_cis = []				# (imcomplete) matrix of Genes x cis- SNPs
+beta_cis = []				# tensor of (imcomplete) matrix of Genes x cis- SNPs
 beta_cellfactor1 = []		# matrix of first layer cell factor beta
 beta_cellfactor2 = []		# tensor (tissue specific) of second layer cell factor beta
 beta_batch = []				# matrix of Individuals x Batches
@@ -69,6 +69,8 @@ def simu_snp():
 	global X
 	global N, I
 
+	print "simu X"
+
 	# X
 	for n in range(N):
 		X.append([])
@@ -88,6 +90,8 @@ def simu_snp_pos():
 	global X_pos
 	global I, L
 
+	print "simu X_pos"
+
 	# X_pos
 	X_pos = []
 	repo_temp = {}			# redundancy removing
@@ -106,6 +110,8 @@ def simu_snp_pos():
 	X_pos = np.sort(X_pos)
 	print "simulated X_pos shape:",
 	print X_pos.shape
+	#print "and X_pos:",
+	#print X_pos
 
 	return
 
@@ -114,6 +120,8 @@ def simu_snp_pos():
 def simu_gene_pos():
 	global Y_pos
 	global J
+
+	print "simu Y_pos"
 
 	# Y_pos
 	Y_pos = []
@@ -133,6 +141,8 @@ def simu_gene_pos():
 	Y_pos = np.sort(Y_pos)
 	print "simulated Y_pos shape:",
 	print Y_pos.shape
+	#print "and Y_pos:",
+	#print Y_pos
 
 	return
 
@@ -141,11 +151,13 @@ def simu_gene_pos():
 ## calculate cis- mapping information
 def cal_snp_gene_map():
 	global mapping_cis, X_pos, Y_pos
+	global I, J
 
 	print "mapping the cis- region of all genes..."
 
+	# mapping_cis
 	mapping_cis = []
-	for j in range(len(Y_pos)):
+	for j in range(J):
 		start = 0
 		end = 0
 
@@ -162,7 +174,7 @@ def cal_snp_gene_map():
 				end = index - 1
 				break
 
-			if index == (len(X_pos) - 1):
+			if index == (I - 1):
 				end = index
 				break
 
@@ -172,6 +184,8 @@ def cal_snp_gene_map():
 	mapping_cis = np.array(mapping_cis)
 	print "simulated mapping_cis shape:",
 	print mapping_cis.shape
+	print "and the mapping_cis:",
+	print mapping_cis
 
 	return
 
@@ -193,6 +207,8 @@ def simu_batch():
 	Z = np.array(Z)
 	print "simulated Z shape:",
 	print Z.shape
+	print "and the Z:",
+	print Z
 
 	return
 
@@ -207,17 +223,29 @@ def simu_batch():
 ## simulating cis beta
 def simu_beta_cis():
 	global beta_cis
-	global J, mapping_cis
+	global J, K, mapping_cis
+
+	print "simu beta_cis..."
 
 	# beta_cis
 	beta_cis = []
-	for j in range(J):
+
+	for k in range(K):
+		print "tissue#", k
+
 		beta_cis.append([])
-		amount = mapping_cis[j][1] - mapping_cis[j][0] + 1 + 1				# NOTE: intercept
-		for index in range(amount):
-			# simu
-			beta = np.random.normal()
-			beta_cis[j].append(beta)
+		for j in range(J):
+			beta_cis[k].append([])
+			amount = mapping_cis[j][1] - mapping_cis[j][0] + 1 + 1				# NOTE: intercept
+			for index in range(amount):
+				# simu
+				beta = np.random.normal()
+				beta_cis[k][j].append(beta)
+			beta_cis[k][j] = np.array(beta_cis[k][j])
+		beta_cis[k] = np.array(beta_cis[k])
+		print "simulated beta_cis[k] shape:",
+		print beta_cis[k].shape
+
 	beta_cis = np.array(beta_cis)
 	print "simulated beta_cis shape:",
 	print beta_cis.shape
@@ -231,6 +259,8 @@ def simu_beta_cellfactor():
 	global beta_cellfactor1, beta_cellfactor2
 	global D, I, J, K
 
+	print "simu beta_cellfactor1..."
+
 	# beta_cellfactor1
 	beta_cellfactor1 = []
 	for d in range(D):
@@ -243,6 +273,8 @@ def simu_beta_cellfactor():
 	beta_cellfactor1 = np.array(beta_cellfactor1)
 	print "simulated beta_cellfactor1 shape:",
 	print beta_cellfactor1.shape
+
+	print "simu beta_cellfactor2..."
 
 	# beta_cellfactor2
 	beta_cellfactor2 = []
@@ -267,6 +299,8 @@ def simu_beta_cellfactor():
 def simu_beta_batch():
 	global beta_batch
 	global J, B
+
+	print "simu beta_batch..."
 
 	# beta_batch
 	beta_batch = []
@@ -294,32 +328,12 @@ def simu_beta_batch():
 ## simulate genes, and gene pos
 ## this is called at the very end
 def simu_gene():
-	global X, Y
+	global X, Y, Z
 	global mapping_cis
 	global beta_cis, beta_cellfactor1, beta_cellfactor2, beta_batch
 	global I, J, K, D, B, N
 
 	Y = []
-
-	##=============
-	## from cis-
-	##=============
-	Y_cis = []
-	for j in range(J):
-		X_sub = []
-		start = mapping_cis[j][0]
-		end = mapping_cis[j][1]
-		for n in range(N):
-			X_sub.append(X[n][start: end+1])
-		X_sub = np.array(X_sub)
-		array_ones = (np.array([np.ones(N)])).T
-		X_sub = np.concatenate((X_sub, array_ones), axis=1)						# N x (amount+1)
-		beta_sub = beta_cis[j]													# 1 x (amount+1)
-		Y_sub = np.dot(X_sub, beta_sub)											# N x 1
-		Y_cis.append(Y_sub)
-	Y_cis = np.array(Y_cis)
-	Y_cis = Y_cis.T
-
 
 	##=============
 	## from batch
@@ -328,14 +342,39 @@ def simu_gene():
 	Z_new = np.concatenate((Z, array_ones), axis=1)								# N x (B+1)
 	beta_batch_reshape = beta_batch.T 											# (B+1) x J
 	Y_batch = np.dot(Z_new, beta_batch_reshape)									# N x J
+	print "Y_batch shape:",
+	print Y_batch.shape
+
 
 
 	##=============
-	## from cell factor
+	## the other two
 	##=============
 	for k in range(K):
 		print "working on tissue#", k
 
+		##=============
+		## from cis-
+		##=============
+		Y_cis = []
+		for j in range(J):
+			X_sub = []
+			start = mapping_cis[j][0]
+			end = mapping_cis[j][1]
+			X_sub = X[:, start:end+1]
+			array_ones = (np.array([np.ones(N)])).T
+			X_sub = np.concatenate((X_sub, array_ones), axis=1)						# N x (amount+1)
+			beta_sub = beta_cis[k][j]												# 1 x (amount+1)
+			Y_sub = np.dot(X_sub, beta_sub)											# 1 x N
+			Y_cis.append(Y_sub)
+		Y_cis = np.array(Y_cis)
+		Y_cis = Y_cis.T
+		print "Y_cis shape:",
+		print Y_cis.shape
+
+		##=============
+		## from cell factor
+		##=============
 		Y_cellfactor = []
 
 		# first layer
@@ -353,11 +392,13 @@ def simu_gene():
 		# second layer
 		array_ones = (np.array([np.ones(N)])).T
 		m_factor_new = np.concatenate((m_factor, array_ones), axis=1)			# N x (D+1)
-		beta_cellfactor2_reshape = beta_cellfactor2[k].T 							# (D+1) x J
+		beta_cellfactor2_reshape = beta_cellfactor2[k].T 						# (D+1) x J
 		Y_cellfactor = np.dot(m_factor_new, beta_cellfactor2_reshape)			# N x J
+		print "Y_cellfactor shape:",
+		print Y_cellfactor.shape
 
 		##== compile
-		Y_final = Y_cis + Y_batch + Y_cellfactor
+		Y_final = Y_cis + Y_cellfactor + Y_batch
 		Y.append(Y_final)
 
 	Y = np.array(Y)
@@ -377,7 +418,12 @@ def simu_gene():
 if __name__ == "__main__":
 
 
+
 	print "now simulating..."
+
+	##====================================================
+	## simu real data
+	##====================================================
 	##==== simu data
 	simu_snp()
 	simu_snp_pos()
@@ -393,7 +439,6 @@ if __name__ == "__main__":
 	##==== cpmpile
 	simu_gene()
 
-
 	##==== save data
 	np.save("./data_simu/X", X)
 	np.save("./data_simu/X_pos", X_pos)
@@ -405,6 +450,22 @@ if __name__ == "__main__":
 	np.save("./data_simu/beta_cellfactor1", beta_cellfactor1)
 	np.save("./data_simu/beta_cellfactor2", beta_cellfactor2)
 	np.save("./data_simu/beta_batch", beta_batch)
+
+
+
+	##====================================================
+	## simu another copy as the init (randomly use another copy to init -- we can of course init more wisely)
+	##====================================================
+	##==== simu model
+	simu_beta_cis()
+	simu_beta_cellfactor()
+	simu_beta_batch()
+
+	##==== save data
+	np.save("./data_init/beta_cis", beta_cis)
+	np.save("./data_init/beta_cellfactor1", beta_cellfactor1)
+	np.save("./data_init/beta_cellfactor2", beta_cellfactor2)
+	np.save("./data_init/beta_batch", beta_batch)
 
 
 
