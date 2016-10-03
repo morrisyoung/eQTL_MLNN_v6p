@@ -1,7 +1,7 @@
 ## do the mini-batch gradient descent
 
 ## NOTE:
-##	1. dimension indicators should be used whenever needed, rather than the len(Var)
+##	1. dimension indicators should be used whenever needed, rather than the len(Var) (as input will be appended to the intercept term)
 
 
 
@@ -9,7 +9,6 @@
 
 import numpy as np
 import math
-
 
 
 
@@ -79,6 +78,7 @@ def forward_backward_gd(k):
 	global I, J, K, D, B, N
 
 	global size_batch, rate_learn
+
 
 	##==========================================================================================
 	## prep
@@ -155,10 +155,10 @@ def forward_backward_gd(k):
 	## from batch
 	##=============
 	der_batch = np.zeros(beta_batch.shape)		# J x (B+1)
-	""" per individual
+	''' per individual
 	for n in range(size_batch):
 		der_batch += np.outer(m_error[n], Z_batch[n])
-	"""
+	'''
 	# matrix mul: J x N, N x (B+1)
 	der_batch = np.dot(m_error.T, Z_batch)		# J x (B+1)
 	der_batch = der_batch / size_batch
@@ -175,8 +175,9 @@ def forward_backward_gd(k):
 		array_ones = (np.array([np.ones(size_batch)])).T
 		X_sub = np.concatenate((X_sub, array_ones), axis=1)						# size_batch x (amount+1)
 
+		## per individual fashion
 		#for n in range(size_batch):
-		#	der_cis[j] += m_error[n][j] * X_sub[n]
+		#	der_cis[k][j] += m_error[n][j] * X_sub[n]
 		der_cis[k][j] = np.dot(m_error[:, j].T, X_sub)
 		der_cis[k][j] = der_cis[k][j] / size_batch
 
@@ -184,16 +185,18 @@ def forward_backward_gd(k):
 	## from cell factor (tissue k)
 	##=============
 	##== last layer
-	der_cellfactor2[k] = np.zeros(beta_cellfactor2[k].shape)
-	for n in range(size_batch):
-		der_cellfactor2[k] += np.outer(m_error[n], m_factor_new[n])
+	der_cellfactor2[k] = np.zeros(beta_cellfactor2[k].shape)			# J x (D+1)
+	## per individual fashion
+	#for n in range(size_batch):
+	#	der_cellfactor2[k] += np.outer(m_error[n], m_factor_new[n])
+	# J x N, N x (D+1)
+	der_cellfactor2[k] = np.dot(m_error.T, m_factor_new)
 	der_cellfactor2[k] = der_cellfactor2[k] / size_batch
 
 	##== first layer
 	der_cellfactor1 = np.zeros(der_cellfactor1.shape)
-
 	## per individual fashion
-	"""
+	'''
 	for n in range(size_batch):
 		# one individual case
 		for d in range(D):
@@ -209,18 +212,17 @@ def forward_backward_gd(k):
 				der_cellfactor1[d][i] += dosage * temp
 				## eliminate n at the very end, if multiple individual appear
 	der_cellfactor1 = der_cellfactor1 / size_batch
-	"""
+	'''
 	## all individual fashion
 	# N x J, J x D --> N x D
 	m_temp = np.dot(m_error, beta_cellfactor2[k][:, :-1])
 	# N x D
 	m_factor_der = np.multiply(m_factor_after, 1 - m_factor_after)
-	# N x D, N x D
+	# N x D, N x D --> N x D
 	m_temp = np.multiply(m_temp, m_factor_der)
 	# D x N, N x (I+1)
 	der_cellfactor1 = np.dot(m_temp.T, X_batch)
 	der_cellfactor1 = der_cellfactor1 / size_batch
-
 
 
 	##==========================================================================================
@@ -243,8 +245,9 @@ def cal_error(k):
 	global beta_cis, beta_cellfactor1, beta_cellfactor2, beta_batch
 	global I, J, K, D, B, N
 
+
 	##=============
-	## from cis-
+	## from cis- (tissue k)
 	##=============
 	Y_cis = []
 	for j in range(J):
@@ -254,7 +257,7 @@ def cal_error(k):
 		X_sub = X[:, start:end+1]
 		array_ones = (np.array([np.ones(N)])).T
 		X_sub = np.concatenate((X_sub, array_ones), axis=1)						# N x (amount+1)
-		beta_sub = beta_cis[k][j]													# 1 x (amount+1)
+		beta_sub = beta_cis[k][j]												# 1 x (amount+1)
 		Y_sub = np.dot(X_sub, beta_sub)											# 1 x N
 		Y_cis.append(Y_sub)
 	Y_cis = np.array(Y_cis)
@@ -301,10 +304,12 @@ def cal_error(k):
 
 
 
+
 ##=============/=============/=============/=============/=============/=============/=============/=============
 ##=============/=============/=============/=============/=============/=============/=============/=============
 ##=============/=============/=============/=============/=============/=============/=============/=============
 ##=============/=============/=============/=============/=============/=============/=============/=============
+
 
 
 
@@ -329,7 +334,15 @@ if __name__ == "__main__":
 	beta_cellfactor1 = np.load("./data_simu_init/beta_cellfactor1.npy")
 	beta_cellfactor2 = np.load("./data_simu_init/beta_cellfactor2.npy")
 	beta_batch = np.load("./data_simu_init/beta_batch.npy")
+	##==== fill dimension
+	I = len(X[0])
+	J = len(Y[0][0])
+	K = len(Y)
+	N = len(X)
+	D = len(beta_cellfactor1)
+	B = len(Z[0])
 
+	# make incomplete tensor numpy array at all levels, in order to supprt numpy array computing
 	der_cis = []
 	for k in range(K):
 		der_cis.append([])
@@ -342,13 +355,7 @@ if __name__ == "__main__":
 	der_cellfactor1 = np.zeros(beta_cellfactor1.shape)
 	der_cellfactor2 = np.zeros(beta_cellfactor2.shape)
 	der_batch = np.zeros(beta_batch.shape)
-	##==== fill dimension
-	I = len(X[0])
-	J = len(Y[0][0])
-	K = len(Y)
-	N = len(X)
-	D = len(beta_cellfactor1)
-	B = len(Z[0])
+
 
 	##==== append intercept to X, and Z (for convenience of cell factor pathway, and batch pathway)
 	## X
