@@ -440,16 +440,16 @@ if __name__ == "__main__":
 	simu_gene()
 
 	##==== save data
-	np.save("./data_simu/X", X)
-	np.save("./data_simu/X_pos", X_pos)
-	np.save("./data_simu/Y", Y)
-	np.save("./data_simu/Y_pos", Y_pos)
-	np.save("./data_simu/mapping_cis", mapping_cis)
-	np.save("./data_simu/Z", Z)
-	np.save("./data_simu/beta_cis", beta_cis)
-	np.save("./data_simu/beta_cellfactor1", beta_cellfactor1)
-	np.save("./data_simu/beta_cellfactor2", beta_cellfactor2)
-	np.save("./data_simu/beta_batch", beta_batch)
+	np.save("./data_simu_data/X", X)
+	np.save("./data_simu_data/X_pos", X_pos)
+	np.save("./data_simu_data/Y", Y)
+	np.save("./data_simu_data/Y_pos", Y_pos)
+	np.save("./data_simu_data/mapping_cis", mapping_cis)
+	np.save("./data_simu_data/Z", Z)
+	np.save("./data_simu_data/beta_cis", beta_cis)
+	np.save("./data_simu_data/beta_cellfactor1", beta_cellfactor1)
+	np.save("./data_simu_data/beta_cellfactor2", beta_cellfactor2)
+	np.save("./data_simu_data/beta_batch", beta_batch)
 
 
 
@@ -462,10 +462,11 @@ if __name__ == "__main__":
 	simu_beta_batch()
 
 	##==== save data
-	np.save("./data_init/beta_cis", beta_cis)
-	np.save("./data_init/beta_cellfactor1", beta_cellfactor1)
-	np.save("./data_init/beta_cellfactor2", beta_cellfactor2)
-	np.save("./data_init/beta_batch", beta_batch)
+	np.save("./data_simu_init/beta_cis", beta_cis)
+	np.save("./data_simu_init/beta_cellfactor1", beta_cellfactor1)
+	np.save("./data_simu_init/beta_cellfactor2", beta_cellfactor2)
+	np.save("./data_simu_init/beta_batch", beta_batch)
+
 
 
 

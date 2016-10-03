@@ -13,9 +13,10 @@ import math
 
 
 
+
 ##==== learning setting
 ## TODO: to determine some parameters
-num_iter_out = 10
+num_iter_out = 100
 num_iter_in = 100
 size_batch = 20
 rate_learn = 0.0001
@@ -48,11 +49,11 @@ Y_pos = []					# list of pos of genes
 mapping_cis = []			# list of (index start, index end)
 Z = []						# matrix of Individuals x Batches
 ## NOTE: the following have the intercept term
-beta_cis = []				# (imcomplete) matrix of Genes x cis- SNPs
+beta_cis = []				# tensor of (imcomplete) matrix of Genes x cis- SNPs
 beta_cellfactor1 = []		# matrix of first layer cell factor beta
 beta_cellfactor2 = []		# tensor (tissue specific) of second layer cell factor beta
 beta_batch = []				# matrix of Individuals x Batches
-
+# the following corresponds to the above
 der_cis = []
 der_cellfactor1 = []
 der_cellfactor2 = []
@@ -317,17 +318,17 @@ if __name__ == "__main__":
 	## prep
 	##============
 	##==== load data (simu)
-	X = np.load("./data_simu/X.npy")
-	X_pos = np.load("./data_simu/X_pos.npy")
-	Y = np.load("./data_simu/Y.npy")
-	Y_pos = np.load("./data_simu/Y_pos.npy")
-	mapping_cis = np.load("./data_simu/mapping_cis.npy")
-	Z = np.load("./data_simu/Z.npy")
+	X = np.load("./data_simu_data/X.npy")
+	X_pos = np.load("./data_simu_data/X_pos.npy")
+	Y = np.load("./data_simu_data/Y.npy")
+	Y_pos = np.load("./data_simu_data/Y_pos.npy")
+	mapping_cis = np.load("./data_simu_data/mapping_cis.npy")
+	Z = np.load("./data_simu_data/Z.npy")
 
-	beta_cis = np.load("./data_init/beta_cis.npy")
-	beta_cellfactor1 = np.load("./data_init/beta_cellfactor1.npy")
-	beta_cellfactor2 = np.load("./data_init/beta_cellfactor2.npy")
-	beta_batch = np.load("./data_init/beta_batch.npy")
+	beta_cis = np.load("./data_simu_init/beta_cis.npy")
+	beta_cellfactor1 = np.load("./data_simu_init/beta_cellfactor1.npy")
+	beta_cellfactor2 = np.load("./data_simu_init/beta_cellfactor2.npy")
+	beta_batch = np.load("./data_simu_init/beta_batch.npy")
 
 	der_cis = []
 	for k in range(K):
@@ -364,6 +365,7 @@ if __name__ == "__main__":
 	## train
 	##============
 	##==== train (mini-batch)
+	list_error = []
 	for iter1 in range(num_iter_out):
 		print "[@@@]working on out iter#",
 		print iter1
@@ -383,6 +385,9 @@ if __name__ == "__main__":
 				error = cal_error(k)
 				print "current total error:",
 				print error
+
+				list_error.append(error)
+				np.save("./result/list_error", np.array(list_error))
 
 
 
