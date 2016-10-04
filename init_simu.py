@@ -3,12 +3,12 @@
 
 ## we will do the following initialization:
 ##	1. we assume the cis- effect and trans- effect are equal, so we split the expression tensor and use half to do each
-##	2. for the cell factors, we will do PCA for each tissue separately, and average to get the factors; we then re-do the linear system to get the tissue specific parameters
+##	2. for the cell factors, we will do PCA for each tissue separately, and average to get the factors; we then re-do the linear system to get the tissue specific parameters (after we twist the cell factors to (0, 1))
 ##	3. we twist the cell factors into range(0, 1), and map back them for logistic function
 ##	4. we then solve the linear system to get the genome-wide factor regulation
 ##	5. we solve multiple linear systems to get the cis- part
 ##	6. we then forward propagation and get the residual, and use the averaged residual to initialize the batch effect
-##	7. we will always append a random constant effect (the intercept)
+##	7. we will always append a random constant effect (the intercept) if necessary
 
 
 ## NOTE: now we have a simulated full tensor
@@ -19,6 +19,8 @@
 
 import numpy as np
 from sklearn.decomposition import PCA
+import math
+
 
 
 
@@ -83,12 +85,12 @@ if __name__ == "__main__":
 	D = len(beta_cellfactor1)
 	B = len(Z[0])
 	print "shape:"
-	print I
-	print J
-	print K
-	print N
-	print D
-	print B
+	print "I:", I
+	print "J:", J
+	print "K:", K
+	print "N:", N
+	print "D:", D
+	print "B:", B
 
 	# make incomplete tensor numpy array at all levels, in order to supprt numpy array computing
 	init_beta_cis = []
@@ -136,9 +138,9 @@ if __name__ == "__main__":
 	init_beta_cis = np.array(init_beta_cis)
 	print "init_beta_cis shape:",
 	print init_beta_cis.shape
-	print "and three level data type:",
-	print type(init_beta_cis)
-	print type(init_beta_cis[0])
+	print "and data types of three levels:",
+	print type(init_beta_cis),
+	print type(init_beta_cis[0]),
 	print type(init_beta_cis[0][0])
 
 
@@ -173,6 +175,7 @@ if __name__ == "__main__":
 	value_min = np.amin(m_factor)
 	m_factor_tune = (m_factor - value_min) * (1 / (value_max - value_min))
 	m_factor_tune = 0.5 + 0.8 * (m_factor_tune - 0.5)
+
 	array_ones = (np.array([np.ones(N)])).T
 	m_factor_tune = np.concatenate((m_factor_tune, array_ones), axis=1)					# N x (D+1)
 
@@ -207,6 +210,20 @@ if __name__ == "__main__":
 	##==== residual for batch
 	##=====================================================================================================================
 	Y_batch = []
+
+	## extra cache for cell factor 1
+	# first layer
+	init_beta_cellfactor1_reshape = init_beta_cellfactor1.T 				# (I+1) x D
+	m_factor = np.dot(X, init_beta_cellfactor1_reshape)						# N x D
+	# logistic twist
+	for n in range(N):
+		for d in range(D):
+			x = m_factor[n][d]
+			m_factor[n][d] = 1.0 / (1.0 + math.exp(-x))
+	# second layer input
+	array_ones = (np.array([np.ones(N)])).T
+	m_factor_new = np.concatenate((m_factor, array_ones), axis=1)			# N x (D+1)
+
 	for k in range(K):
 		##=============
 		## from cis-
@@ -232,25 +249,19 @@ if __name__ == "__main__":
 		##=============
 		Y_cellfactor = []
 
-		# first layer NOTE: this is redundent
-		init_beta_cellfactor1_reshape = init_beta_cellfactor1.T 				# (I+1) x D
-		m_factor = np.dot(X, init_beta_cellfactor1_reshape)						# N x D
+		# NOTE: cell factor 1 cal in advance
 
-		# logistic twist
-		for n in range(N):
-			for d in range(D):
-				x = m_factor[n][d]
-				m_factor[n][d] = 1.0 / (1.0 + math.exp(-x))
-
-		# second layer
-		array_ones = (np.array([np.ones(N)])).T
-		m_factor_new = np.concatenate((m_factor, array_ones), axis=1)			# N x (D+1)
+		## second layer
+		#array_ones = (np.array([np.ones(N)])).T
+		#m_factor_new = np.concatenate((m_factor, array_ones), axis=1)			# N x (D+1)
 		init_beta_cellfactor2_reshape = init_beta_cellfactor2[k].T 				# (D+1) x J
 		Y_cellfactor = np.dot(m_factor_new, init_beta_cellfactor2_reshape)		# N x J
 		print "Y_cellfactor shape:",
 		print Y_cellfactor.shape
 
-		##== compile
+		##=============
+		## compile to get residual
+		##=============
 		temp = Y[k] - (Y_cis + Y_cellfactor)
 		Y_batch.append(temp)
 
@@ -271,6 +282,14 @@ if __name__ == "__main__":
 
 
 
+	##=====================================================================================================================
+	##==== save the data
+	##=====================================================================================================================
+	##==== save data
+	np.save("./data_simu_init/beta_cis", init_beta_cis)
+	np.save("./data_simu_init/beta_cellfactor1", init_beta_cellfactor1)
+	np.save("./data_simu_init/beta_cellfactor2", init_beta_cellfactor2)
+	np.save("./data_simu_init/beta_batch", init_beta_batch)
 
 
 
