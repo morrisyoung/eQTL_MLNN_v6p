@@ -8,9 +8,13 @@
 
 import numpy as np
 import math
+import timeit
 
 
 
+
+##====================================================================================================
+##==== scale of data reference
 ##==== scale of chr22 and brain samples
 '''
 K = 13
@@ -20,6 +24,38 @@ S = 14056
 D1 = 40
 D2 = 40
 '''
+'''
+# NOTE: the following are for the whole-genome and all samples (old)
+K = 33
+I = 450
+J = 21150
+S = 824113
+D1 = 400
+D2 = 400
+'''
+##====================================================================================================
+
+
+
+##==== scale of the input data (real data)
+I = 824113					# num of SNPs
+J = 21150					# num of genes
+K = 33						# num of tissues
+L = 3000000000				# length of chromosome
+N = 450						# num of individuals
+D = 400						# num of cell factors
+B = 20						# num of batch variables
+'''
+##==== scale of the input data (10% of real data)
+I = 100000					# num of SNPs
+J = 2000					# num of genes
+K = 13						# num of tissues
+L = 355000000				# length of chromosome
+N = 159						# num of individuals
+D = 40						# num of cell factors
+B = 10						# num of batch variables
+'''
+'''
 ##==== scale of the input data (chr22 and brain sample setting; appropriate for simu test)
 I = 14056					# num of SNPs
 J = 585						# num of genes
@@ -28,6 +64,7 @@ L = 50000000				# length of chromosome
 N = 159						# num of individuals
 D = 40						# num of cell factors
 B = 10						# num of batch variables
+'''
 
 
 
@@ -420,6 +457,8 @@ if __name__ == "__main__":
 
 
 	print "now simulating..."
+	##==== timer
+	start_time = timeit.default_timer()
 
 	##====================================================
 	## simu real data
@@ -435,6 +474,11 @@ if __name__ == "__main__":
 	simu_beta_cis()
 	simu_beta_cellfactor()
 	simu_beta_batch()
+
+
+	## NOTE: for genome-wide small signal:
+	beta_cellfactor1 = beta_cellfactor1 / 10
+
 
 	##==== cpmpile
 	simu_gene()
@@ -461,12 +505,25 @@ if __name__ == "__main__":
 	simu_beta_cellfactor()
 	simu_beta_batch()
 
+
+	## NOTE: for genome-wide small signal:
+	beta_cellfactor1 = beta_cellfactor1 / 10
+
+
 	##==== save data
 	np.save("./data_simu_init/beta_cis", beta_cis)
 	np.save("./data_simu_init/beta_cellfactor1", beta_cellfactor1)
 	np.save("./data_simu_init/beta_cellfactor2", beta_cellfactor2)
 	np.save("./data_simu_init/beta_batch", beta_batch)
 
+
+
+
+
+
+	##==== timer
+	elapsed = timeit.default_timer() - start_time
+	print "time spent:", elapsed
 
 
 

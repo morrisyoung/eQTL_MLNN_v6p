@@ -2,23 +2,28 @@
 
 ## NOTE:
 ##	1. dimension indicators should be used whenever needed, rather than the len(Var) (as input will be appended to the intercept term)
-
+##	2. batch has consistent effects across different tissues (so we don't have tissue-specific parameters)
 
 
 
 
 import numpy as np
 import math
+import timeit
+
 
 
 
 
 ##==== learning setting
 ## TODO: to determine some parameters
-num_iter_out = 100
+num_iter_out = 14
 num_iter_in = 100
 size_batch = 20
-rate_learn = 0.0001
+#rate_learn = 0.0001					# for brain and chr22
+#rate_learn = 0.00001					# for 10% of real scale
+rate_learn = 0.0000001					# for real scale data
+
 
 
 
@@ -388,6 +393,9 @@ if __name__ == "__main__":
 				print k,
 				print iter2
 
+				##==== timer
+				start_time = timeit.default_timer()
+
 				forward_backward_gd(k)
 				error = cal_error(k)
 				print "current total error:",
@@ -396,7 +404,9 @@ if __name__ == "__main__":
 				list_error.append(error)
 				np.save("./result/list_error", np.array(list_error))
 
-
+				##==== timer
+				elapsed = timeit.default_timer() - start_time
+				print "time spent this batch:", elapsed
 
 	print "done!"
 

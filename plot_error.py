@@ -1,5 +1,11 @@
 import matplotlib.pyplot as plt
 import numpy as np
+import matplotlib.lines as mlines
+
+
+
+list_tissue_color = ['#D55E00', '#988ED5', 'm', '#8172B2', '#348ABD', '#EEEEEE', '#FF9F9A', '#56B4E9', '#8C0900', '#6d904f', 'cyan', 'red', 'g']
+list_tissue = ['tissue#0', 'tissue#1', 'tissue#2', 'tissue#3', 'tissue#4', 'tissue#5', 'tissue#6', 'tissue#7', 'tissue#8', 'tissue#9', 'tissue#10', 'tissue#11', 'tissue#12']
 
 
 
@@ -26,9 +32,6 @@ if __name__=="__main__":
 	"""
 
 
-
-
-
 	##==== other likelihood terms
 	#arr = np.load("result/loglike_data.npy")
 	#arr = np.load("result/loglike_Y1.npy")
@@ -50,17 +53,54 @@ if __name__=="__main__":
 	#arr = np.load("result/loglike_alpha.npy")
 
 
+
+
 	#print arr
+	print "len of error list:",
+	print len(arr)
+	print len(list_tissue_color)
+	print len(list_tissue)
 	plt.plot(arr, 'r')
 
 
 
+	"""
+	## TODO: manually specify something here
+	num_iter_out = 100
+	num_iter_in = 100
+	num_tissue = 13
+	count = 0
+	for iter1 in range(num_iter_out):
+		for k in range(num_tissue):
+			x = np.arange(count, count+num_iter_in)
+			plt.plot(x, arr[x], color=list_tissue_color[k])
+			count += num_iter_in
 
 
-	plt.xlabel("Number of Batches")
-	plt.ylabel("Total squared error in current tissue")
-	plt.title("Total squared error v.s. num of batches")
+
+
+	## the legend
+	list_handle = []
+	for k in range(num_tissue):
+		line = mlines.Line2D([], [], color=list_tissue_color[k], label=list_tissue[k])
+		list_handle.append(line)
+	plt.legend(handles=list_handle)
+	"""
+
+
+
+
+
+
+
+	plt.xlabel("number of batches")
+	plt.ylabel("total squared error in current tissue")
+	plt.title("total squared error v.s. num of batches")
+	plt.grid()
 	plt.show()
+
+
+
 
 
 
