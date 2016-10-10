@@ -33,14 +33,14 @@ rate_learn = 0.0000001					# for 10% of real scale, init (as para from init is t
 
 
 
-##==== scale of the input data (chr22 and brain sample setting; appropriate for simu test)
-I = 14056					# num of SNPs
-J = 585						# num of genes
-K = 13						# num of tissues
-#L = 50000000				# length of chromosome
-N = 159						# num of individuals
-D = 40						# num of cell factors
-B = 10						# num of batch variables
+##==== to be filled later on
+I = 0						# num of SNPs
+J = 0						# num of genes
+K = 0						# num of tissues
+#L = 0						# length of chromosome
+N = 0						# num of individuals
+D = 0						# num of cell factors
+B = 0						# num of batch variables
 
 
 
@@ -50,9 +50,7 @@ B = 10						# num of batch variables
 ##==== variables
 ## NOTE: here we assume one chromosome model
 X = []						# matrix of Individuals x SNPs
-X_pos = []					# list of pos of SNPs
 Y = []						# tensor of gene expression
-Y_pos = []					# list of pos of genes
 mapping_cis = []			# list of (index start, index end)
 Z = []						# matrix of Individuals x Batches
 ## NOTE: the following have the intercept term
@@ -332,9 +330,7 @@ if __name__ == "__main__":
 	##============
 	##==== load data (simu)
 	X = np.load("./data_simu_data/X.npy")
-	X_pos = np.load("./data_simu_data/X_pos.npy")
 	Y = np.load("./data_simu_data/Y.npy")
-	Y_pos = np.load("./data_simu_data/Y_pos.npy")
 	mapping_cis = np.load("./data_simu_data/mapping_cis.npy")
 	Z = np.load("./data_simu_data/Z.npy")
 
@@ -349,6 +345,7 @@ if __name__ == "__main__":
 	N = len(X)
 	D = len(beta_cellfactor1)
 	B = len(Z[0])
+
 
 	# make incomplete tensor numpy array at all levels, in order to supprt numpy array computing
 	der_cis = []

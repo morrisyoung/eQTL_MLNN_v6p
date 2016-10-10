@@ -4,7 +4,7 @@ import matplotlib.lines as mlines
 
 
 
-list_tissue_color = ['#D55E00', '#988ED5', 'm', '#8172B2', '#348ABD', '#EEEEEE', '#FF9F9A', '#56B4E9', '#8C0900', '#6d904f', 'cyan', 'red', 'g']
+list_tissue_color = ['k', '#988ED5', 'm', '#8172B2', '#348ABD', '#EEEEEE', '#FF9F9A', '#56B4E9', '#8C0900', '#6d904f', 'cyan', 'red', 'g']
 list_tissue = ['tissue#0', 'tissue#1', 'tissue#2', 'tissue#3', 'tissue#4', 'tissue#5', 'tissue#6', 'tissue#7', 'tissue#8', 'tissue#9', 'tissue#10', 'tissue#11', 'tissue#12']
 
 
@@ -58,22 +58,23 @@ if __name__=="__main__":
 	#print arr
 	print "len of error list:",
 	print len(arr)
+	print arr[-10:]
 	print len(list_tissue_color)
 	print len(list_tissue)
-	plt.plot(arr, 'r')
+	#plt.plot(arr, 'r')
 
 
 
-	"""
+
 	## TODO: manually specify something here
-	num_iter_out = 100
+	num_iter_out = 7
 	num_iter_in = 100
 	num_tissue = 13
 	count = 0
 	for iter1 in range(num_iter_out):
 		for k in range(num_tissue):
 			x = np.arange(count, count+num_iter_in)
-			plt.plot(x, arr[x], color=list_tissue_color[k])
+			plt.plot(x, arr[x], '-', color=list_tissue_color[k])
 			count += num_iter_in
 
 
@@ -85,7 +86,10 @@ if __name__=="__main__":
 		line = mlines.Line2D([], [], color=list_tissue_color[k], label=list_tissue[k])
 		list_handle.append(line)
 	plt.legend(handles=list_handle)
-	"""
+
+
+
+
 
 
 
