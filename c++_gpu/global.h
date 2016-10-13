@@ -64,6 +64,41 @@ extern vector<float> list_error;
 
 
 
+// GPU variables
+//=================================================
+//
+extern float * d_X_batch;
+extern float * d_Z_batch;
+extern float * d_Y_batch;
+extern float * d_Y_batch_exp;
+extern float * d_cellfactor_batch;
+extern float * d_cellfactor_batch_new;
+
+extern float * d_list_cis_start;
+extern float * d_list_cis_end;
+extern float * d_list_beta_cis_start;
+extern float * d_beta_cis_sub;
+
+extern float * d_beta_batch;
+extern float * d_beta_batch_reshape;
+
+extern float * d_beta_cellfactor1;
+extern float * d_beta_cellfactor1_reshape;
+
+extern float * d_beta_cellfactor2_sub;
+extern float * d_beta_cellfactor2_sub_reshape;
+
+//
+extern float * d_X_sub;
+extern float * d_Z_sub;
+extern float * d_Y_sub;
+extern float * d_Y_sub_exp;
+extern float * d_cellfactor_sub;
+extern float * d_cellfactor_sub_new;
+
+
+
+
 
 
 #endif

@@ -1,11 +1,6 @@
-## do the mini-batch gradient descent
-
 ## NOTE:
-##	1. dimension indicators should be used whenever needed, rather than the len(Var) (as input will be appended to the intercept term)
-##	2. batch has consistent effects across different tissues (so we don't have tissue-specific parameters)
-
-## NOTE:
-##	1. in this script, I use (n x k) to index the data, so I need to reshape beta everytime (from (d x k) to (k x d)); data should normally have (k x n) shape
+##	we have (k x n) shape for data
+## 	we don't reshape the simulator, but we reshape the data after loading them into the training program
 
 
 
@@ -27,9 +22,9 @@ size_batch = 20
 #rate_learn = 0.0001					# for brain and chr22
 #rate_learn = 0.00001					# for 10% of real scale
 
-rate_learn = 0.0000001					# for 10% of real scale, init (as para from init is too weird)
+#rate_learn = 0.0000001					# for 10% of real scale, init (as para from init is too weird)
 
-#rate_learn = 0.0000001					# for real scale data
+rate_learn = 0.0000001					# for real scale data
 
 
 
@@ -99,8 +94,8 @@ def forward_backward_gd(k):
 	arr = np.arange(N)
 	arr_permute = np.random.permutation(arr)
 	list_individual_batch = arr_permute[:size_batch]
-	X_batch = X[list_individual_batch]
-	Z_batch = Z[list_individual_batch]
+	X_batch = X[:, list_individual_batch]
+	Z_batch = Z[:, list_individual_batch]
 
 
 	##==========================================================================================
@@ -114,20 +109,18 @@ def forward_backward_gd(k):
 		X_sub = []
 		start = mapping_cis[j][0]
 		end = mapping_cis[j][1]
-		X_sub = X_batch[:, start:end+1]
-		array_ones = (np.array([np.ones(size_batch)])).T
-		X_sub = np.concatenate((X_sub, array_ones), axis=1)						# size_batch x (amount+1)
+		X_sub = X_batch[start:end+1,:]
+		array_ones = np.array([np.ones(size_batch)])
+		X_sub = np.concatenate((X_sub, array_ones), axis=0)						# (amount+1) x size_batch
 		beta_sub = beta_cis[k][j]												# 1 x (amount+1)
-		Y_sub = np.dot(X_sub, beta_sub)											# 1 x size_batch
+		Y_sub = np.dot(beta_sub, X_sub)											# 1 x size_batch
 		Y_cis.append(Y_sub)
 	Y_cis = np.array(Y_cis)														# J x size_batch
-	Y_cis = Y_cis.T 															# size_batch x J
 
 	##=============
 	## from batch
 	##=============
-	beta_batch_reshape = beta_batch.T 											# (B+1) x J
-	Y_batch = np.dot(Z_batch, beta_batch_reshape)								# size_batch x J
+	Y_batch = np.dot(beta_batch, Z_batch)										# J x size_batch
 
 	##=============
 	## from cell factor (tissue k)
@@ -135,27 +128,27 @@ def forward_backward_gd(k):
 	Y_cellfactor = []
 
 	# first layer
-	beta_cellfactor1_reshape = beta_cellfactor1.T 							# (I+1) x D
-	m_factor_before = np.dot(X_batch, beta_cellfactor1_reshape)				# size_batch x D
+	m_factor_before = np.dot(beta_cellfactor1, X_batch)							# D x size_batch
 
 	# logistic twist
 	m_factor_after = np.zeros(m_factor_before.shape)
-	for n in range(size_batch):
-		for d in range(D):
-			x = m_factor_before[n][d]
-			m_factor_after[n][d] = 1.0 / (1.0 + math.exp(-x))
+	for d in range(D):
+		for n in range(size_batch):
+			x = m_factor_before[d][n]
+			m_factor_after[d][n] = 1.0 / (1.0 + math.exp(-x))
 
 	# second layer
-	array_ones = (np.array([np.ones(size_batch)])).T
-	m_factor_new = np.concatenate((m_factor_after, array_ones), axis=1)		# size_batch x (D+1)
-	beta_cellfactor2_reshape = beta_cellfactor2[k].T 						# (D+1) x J
-	Y_cellfactor = np.dot(m_factor_new, beta_cellfactor2_reshape)			# size_batch x J
+	array_ones = np.array([np.ones(size_batch)])
+	m_factor_new = np.concatenate((m_factor_after, array_ones), axis=0)			# (D+1) x size_batch
+	Y_cellfactor = np.dot(beta_cellfactor2[k], m_factor_new)					# J x size_batch
+
+
 
 	##=============
 	## compile and error cal
 	##=============
 	Y_final = Y_cis + Y_batch + Y_cellfactor
-	m_error = Y_final - Y[k][list_individual_batch]
+	m_error = Y_final - Y[k][:,list_individual_batch]
 
 
 	##==========================================================================================
@@ -170,7 +163,7 @@ def forward_backward_gd(k):
 		der_batch += np.outer(m_error[n], Z_batch[n])
 	'''
 	# matrix mul: J x N, N x (B+1)
-	der_batch = np.dot(m_error.T, Z_batch)		# J x (B+1)
+	der_batch = np.dot(m_error, Z_batch.T)		# J x (B+1)
 	der_batch = der_batch / size_batch
 
 	##=============
@@ -181,14 +174,15 @@ def forward_backward_gd(k):
 		X_sub = []
 		start = mapping_cis[j][0]
 		end = mapping_cis[j][1]
-		X_sub = X_batch[:, start:end+1]
-		array_ones = (np.array([np.ones(size_batch)])).T
-		X_sub = np.concatenate((X_sub, array_ones), axis=1)						# size_batch x (amount+1)
+		X_sub = X_batch[start:end+1, :]
+		array_ones = np.array([np.ones(size_batch)])
+		X_sub = np.concatenate((X_sub, array_ones), axis=0)						# (amount+1) x size_batch
 
 		## per individual fashion
 		#for n in range(size_batch):
 		#	der_cis[k][j] += m_error[n][j] * X_sub[n]
-		der_cis[k][j] = np.dot(m_error[:, j].T, X_sub)
+		#der_cis[k][j] = np.dot(m_error[:, j].T, X_sub)
+		der_cis[k][j] = np.dot(m_error[j,:], X_sub.T)
 		der_cis[k][j] = der_cis[k][j] / size_batch
 
 	##=============
@@ -200,7 +194,7 @@ def forward_backward_gd(k):
 	#for n in range(size_batch):
 	#	der_cellfactor2[k] += np.outer(m_error[n], m_factor_new[n])
 	# J x N, N x (D+1)
-	der_cellfactor2[k] = np.dot(m_error.T, m_factor_new)
+	der_cellfactor2[k] = np.dot(m_error, m_factor_new.T)
 	der_cellfactor2[k] = der_cellfactor2[k] / size_batch
 
 	##== first layer
@@ -223,6 +217,7 @@ def forward_backward_gd(k):
 				## eliminate n at the very end, if multiple individual appear
 	der_cellfactor1 = der_cellfactor1 / size_batch
 	'''
+	"""
 	## all individual fashion
 	# N x J, J x D --> N x D
 	m_temp = np.dot(m_error, beta_cellfactor2[k][:, :-1])
@@ -232,6 +227,17 @@ def forward_backward_gd(k):
 	m_temp = np.multiply(m_temp, m_factor_der)
 	# D x N, N x (I+1)
 	der_cellfactor1 = np.dot(m_temp.T, X_batch)
+	der_cellfactor1 = der_cellfactor1 / size_batch
+	"""
+	## all individual fashion
+	# D x J, J x N --> D x N
+	m_temp = np.dot(beta_cellfactor2[k][:, :-1].T, m_error)
+	# D x N
+	m_factor_der = np.multiply(m_factor_after, 1 - m_factor_after)
+	# D x N, D x N --> D x N
+	m_temp = np.multiply(m_temp, m_factor_der)
+	# D x N, N x (I+1)
+	der_cellfactor1 = np.dot(m_temp, X_batch.T)
 	der_cellfactor1 = der_cellfactor1 / size_batch
 
 
@@ -264,21 +270,19 @@ def cal_error(k):
 		X_sub = []
 		start = mapping_cis[j][0]
 		end = mapping_cis[j][1]
-		X_sub = X[:, start:end+1]
-		array_ones = (np.array([np.ones(N)])).T
-		X_sub = np.concatenate((X_sub, array_ones), axis=1)						# N x (amount+1)
+		X_sub = X[start:end+1,:]
+		array_ones = np.array([np.ones(N)])
+		X_sub = np.concatenate((X_sub, array_ones), axis=0)						# (amount+1) x N
 		beta_sub = beta_cis[k][j]												# 1 x (amount+1)
-		Y_sub = np.dot(X_sub, beta_sub)											# 1 x N
+		Y_sub = np.dot(beta_sub, X_sub)											# 1 x N
 		Y_cis.append(Y_sub)
 	Y_cis = np.array(Y_cis)
-	Y_cis = Y_cis.T
 
 
 	##=============
 	## from batch
 	##=============
-	beta_batch_reshape = beta_batch.T 											# (B+1) x J
-	Y_batch = np.dot(Z, beta_batch_reshape)										# N x J
+	Y_batch = np.dot(beta_batch, Z)												# J x N
 
 
 	##=============
@@ -287,20 +291,18 @@ def cal_error(k):
 	Y_cellfactor = []
 
 	# first layer
-	beta_cellfactor1_reshape = beta_cellfactor1.T 							# (I+1) x D
-	m_factor = np.dot(X, beta_cellfactor1_reshape)							# N x D
+	m_factor = np.dot(beta_cellfactor1, X)										# D x N
 
 	# logistic twist
-	for n in range(N):
-		for d in range(D):
-			x = m_factor[n][d]
-			m_factor[n][d] = 1.0 / (1.0 + math.exp(-x))
+	for d in range(D):
+		for n in range(N):
+			x = m_factor[d][n]
+			m_factor[d][n] = 1.0 / (1.0 + math.exp(-x))
 
 	# second layer
-	array_ones = (np.array([np.ones(N)])).T
-	m_factor_new = np.concatenate((m_factor, array_ones), axis=1)			# N x (D+1)
-	beta_cellfactor2_reshape = beta_cellfactor2[k].T 						# (D+1) x J
-	Y_cellfactor = np.dot(m_factor_new, beta_cellfactor2_reshape)			# N x J
+	array_ones = np.array([np.ones(N)])
+	m_factor_new = np.concatenate((m_factor, array_ones), axis=0)				# (D+1) x N
+	Y_cellfactor = np.dot(beta_cellfactor2[k], m_factor_new)					# J x N
 
 
 	##=============
@@ -373,6 +375,23 @@ if __name__ == "__main__":
 	## Z
 	array_ones = (np.array([np.ones(N)])).T
 	Z = np.concatenate((Z, array_ones), axis=1)									# N x (B+1)
+
+
+
+	####=====================
+	#### NOTE: reshape data
+	####=====================
+	X = X.T
+	Y_new = []
+	for k in range(K):
+		matrix = np.array(Y[k]).T
+		Y_new.append(matrix)
+	Y = np.array(Y_new)
+	Z = Z.T
+	print "reshaped data:",
+	print X.shape,
+	print Y.shape,
+	print Z.shape
 
 
 

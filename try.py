@@ -26,7 +26,7 @@ if __name__ == "__main__":
 
 
 
-
+	"""
 	data = np.array([[1,2], [3,4],[4,3]])
 	print data
 
@@ -38,6 +38,33 @@ if __name__ == "__main__":
 	data1 = data[:, :1]
 	print data1
 	print type(data1)
+	"""
+
+
+
+	"""
+	tensor = np.array([[[1,2,3],[4,5,6]], [[2,2,1],[3,5,2]]])
+	print tensor.shape
+	print tensor
+	tensor1 = []
+	for i in range(len(tensor)):
+		matrix = np.array(tensor[i]).T
+		tensor1.append(matrix)
+	tensor = np.array(tensor1)
+	print tensor.shape
+	print tensor
+	"""
+
+
+
+	"""
+	tensor = np.array([[1,2,3],[2,1,3]])
+	array = np.array([[2,1,2]])
+	tensor_new = np.concatenate((tensor, array), axis=0)
+
+	print tensor
+	print tensor_new
+	"""
 
 
 

@@ -4,10 +4,13 @@
 #include <time.h>       /* clock_t, clock, CLOCKS_PER_SEC */
 #include "global.h"
 #include "library.h"
+#include "mem_gpu_setup.h"
+
 
 
 
 using namespace std;
+
 
 
 
@@ -19,7 +22,7 @@ int size_batch = 20;
 float rate_learn = 0.0000001;
 
 
-//==== to be filled later on
+//==== to be filled later on by data loading program
 int I = 0;						// num of SNPs
 int J = 0;						// num of genes
 int K = 0;						// num of tissues
@@ -30,7 +33,7 @@ int B = 0;						// num of batch variables
 
 //==== variables
 // NOTE: here we assume one chromosome model (this is easily applicable for multiple-chromosome model)
-Maatrix X;						// matrix of Individuals x SNPs
+Matrix X;						// matrix of Individuals x SNPs
 Tensor_expr Y;					// tensor of gene expression
 Map_list mapping_cis;			// list of (index start, index end)
 Matrix Z;						// matrix of Individuals x Batches
@@ -54,6 +57,40 @@ vector<float> list_error;
 
 
 
+//==== GPU memory variables
+//
+float * d_X_batch;
+float * d_Z_batch;
+float * d_Y_batch;
+float * d_Y_batch_exp;
+float * d_cellfactor_batch;
+float * d_cellfactor_batch_new;
+
+float * d_list_cis_start;
+float * d_list_cis_end;
+float * d_list_beta_cis_start;
+float * d_beta_cis_sub;
+
+float * d_beta_batch;
+float * d_beta_batch_reshape;
+
+float * d_beta_cellfactor1;
+float * d_beta_cellfactor1_reshape;
+
+float * d_beta_cellfactor2_sub;
+float * d_beta_cellfactor2_sub_reshape;
+
+//
+float * d_X_sub;
+float * d_Z_sub;
+float * d_Y_sub;
+float * d_Y_sub_exp;
+float * d_cellfactor_sub;
+float * d_cellfactor_sub_new;
+
+
+
+
 
 
 
@@ -69,6 +106,12 @@ int main()
 	error_init();
 
 
+
+	//==== pre-allocate some GPU memory
+	mem_gpu_init();
+
+
+
 	//============
 	// train (mini-batch)
 	//============
@@ -77,6 +120,13 @@ int main()
 		cout << "[@@@]working on out iter#" << iter1 << endl;
 		for(int k=0; k<K; k++)
 		{
+			// start current tissue
+			// init gpu memory for this tissue
+			mem_gpu_settissue();
+
+
+
+
 			cout << "[##]" << iter1 << ", " << k << endl;
 			for(int iter2=0; iter2<num_iter_in; iter2++)
 			{
@@ -107,10 +157,22 @@ int main()
 
 				// TODO: save the model per need (save model, save error)
 			}
+
+
+
+			// init gpu memory for this tissue
+			mem_gpu_destroytissue();
 			// end current tissue
 		}
 		// end current outer iter
 	}
+
+
+
+
+	//==== pre-allocate some GPU memory
+	mem_gpu_release();
+
 
 
 
@@ -141,4 +203,5 @@ int main()
 
 	return 0;
 }
+
 

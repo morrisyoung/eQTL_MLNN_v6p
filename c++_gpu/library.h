@@ -23,22 +23,33 @@ using namespace std;
 
 class Map_list
 {
-	int dimension;
-	vector<vector<int>> list_pair;
+	int dimension;									// number of genes
+	//vector<vector<int>> list_pair;
+	int * list_start;								// list of start pos
+	int * list_end;									// list of end pos
 
 public:
 
 	int get_start_at(int pos)
 	{
-		int start = (list_pair.at(pos)).at(0);
-		return start;
+		return list_start[pos];
 	}
 
 	int get_end_at(int pos)
 	{
-		int end = (ist_pair.at(pos)).at(1);
-		return end;
+		return list_end[pos];
 	}
+
+	int * get_list_start()
+	{
+		return list_start;
+	}
+
+	int * get_list_end()
+	{
+		return list_end;
+	}
+
 };
 
 
@@ -58,7 +69,52 @@ class Matrix
 
 public:
 
+	void init(int length1, int length2)
+	{
+		dimension1 = length1;
+		dimension2 = length2;
+		matrix = (float *)calloc( length1 * length2, sizeof(float) );
+		return;
+	}
 
+	float * get_array_at(int pos)
+	{
+		return matrix + (pos-1)*dimension2;
+	}
+
+	void fill_with_ref_list(int * list_indiv_pos, float * matrix_ref)
+	{
+		for(int i=0; i<dimension1; i++)
+		{
+			int indiv_pos = list_indiv_pos[i];
+			float * pointer_ref = matrix_ref + indiv_pos * dimension2;
+			float * pointer = matrix + i * dimension2;
+			memcpy( pointer, pointer_ref, dimension2*sizeof(float) );
+		}
+		return;
+	}
+
+	int get_dimension1()
+	{
+		return dimension1;
+	}
+
+	int get_dimension2()
+	{
+		return dimension2;
+	}
+
+	float * get_pointer()
+	{
+		return matrix;
+	}
+
+	// delete object
+	void release()
+	{
+		free(matrix);
+		return;
+	}
 
 
 	/*
@@ -263,7 +319,11 @@ class Tensor
 public:
 
 
-
+	float * get_matrix_at(int pos)
+	{
+		float * pointer = tensor + pos*(dimension2*dimension3);
+		return pointer;
+	}
 
 
 	/*
@@ -469,25 +529,33 @@ public:
 class Tensor_expr
 {
 	int dimension1;										// number of tissues
-	vector<vector<int>> list_list_indiv_pos;			// contains the mappings to pos of individuals
+	//vector<vector<int>> list_list_indiv_pos;			// contains the mappings to pos of individuals
+	//int ** list_list_indiv_pos;							// same as above
+	vector<int *> list_list_indiv_pos;					// same as above
 	vector<int> list_dimension2;						// number of genes for different tissues
 	int dimension3;										// number of genes
 	vector<float *> list_matrix;						// expression matrix for different tissues
 
 public:
 
-
-
-	void init()
+	void load()
 	{
-
 		return;
 	}
-
 
 	int get_dimension2_at(int pos)
 	{
 		return list_dimension2.at(pos);
+	}
+
+	float * get_matrix_at(int pos)
+	{
+		return list_matrix.at(pos);
+	}
+
+	int * get_list_indiv_pos_at(int pos)
+	{
+		return list_list_indiv_pos.at(pos);
 	}
 
 
@@ -501,21 +569,35 @@ class Tensor_beta_cis
 {
 	int dimension1;										// number of tissues
 	int dimension2;										// number of genes
-	vector<int> list_dimension3;						// number of dimension3 for different dimension2 (gene)
+	//vector<int> list_dimension3;						// number of dimension3 for different dimension2 (gene)
+	//int * list_dimension3;							// same as above
+	int * list_start;									// kind of same as above
 	vector<float *>	list_incomp_matrix;					// incomplete beta matrix for different tissues
+	int amount;											// total amount of cis- parameters (for one tissue)
 
 public:
 
 
-
-	//
-	void init()
+	void load()
 	{
 		//
 		return;
 	}
 
+	int * get_list_start()
+	{
+		return list_start;
+	}
 
+	float * get_incomp_matrix_at(int pos)
+	{
+		return list_incomp_matrix.at(pos);
+	}
+
+	int get_amount()
+	{
+		return amount;
+	}
 
 };
 

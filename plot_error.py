@@ -58,7 +58,8 @@ if __name__=="__main__":
 	#print arr
 	print "len of error list:",
 	print len(arr)
-	print arr[-10:]
+	#print arr[-10:]
+	print arr[:10]
 	print len(list_tissue_color)
 	print len(list_tissue)
 	#plt.plot(arr, 'r')
