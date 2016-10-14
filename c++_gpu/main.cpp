@@ -43,10 +43,12 @@ Matrix beta_cellfactor1;		// matrix of first layer cell factor beta
 Tensor beta_cellfactor2;		// tensor (tissue specific) of second layer cell factor beta
 Matrix beta_batch;				// matrix of Individuals x Batches
 // the following corresponds to the above
+/* useless in GPU update
 Tensor_beta_cis der_cis;
 Matrix der_cellfactor1;
 Tensor der_cellfactor2;
 Matrix der_batch;
+*/
 
 
 
@@ -63,12 +65,14 @@ float * d_X_batch;
 float * d_Z_batch;
 float * d_Y_batch;
 float * d_Y_batch_exp;
+float * d_error_batch;
 float * d_cellfactor_batch;
 float * d_cellfactor_batch_new;
 
 float * d_list_cis_start;
 float * d_list_cis_end;
 float * d_list_beta_cis_start;
+float * d_list_beta_cis_geneindex;
 float * d_beta_cis_sub;
 
 float * d_beta_batch;
@@ -80,6 +84,10 @@ float * d_beta_cellfactor1_reshape;
 float * d_beta_cellfactor2_sub;
 float * d_beta_cellfactor2_sub_reshape;
 
+float * d_der_cis_sub;
+float * d_der_batch;
+float * d_der_cellfactor1;
+float * d_der_cellfactor2_sub;
 //
 float * d_X_sub;
 float * d_Z_sub;

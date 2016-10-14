@@ -558,11 +558,15 @@ public:
 		return list_list_indiv_pos.at(pos);
 	}
 
-
+	int get_indiv_pos_at(int index_tissue, int pos)
+	{
+		return (list_list_indiv_pos.at(index_tissue))[pos];
+	}
 
 
 
 };
+
 
 
 class Tensor_beta_cis
@@ -574,6 +578,8 @@ class Tensor_beta_cis
 	int * list_start;									// kind of same as above
 	vector<float *>	list_incomp_matrix;					// incomplete beta matrix for different tissues
 	int amount;											// total amount of cis- parameters (for one tissue)
+	int * list_beta_cis_geneindex;						// mapping each parameter to their gene index
+
 
 public:
 
@@ -598,6 +604,12 @@ public:
 	{
 		return amount;
 	}
+
+	int * get_list_beta_cis_geneindex()
+	{
+		return list_beta_cis_geneindex;
+	}
+
 
 };
 

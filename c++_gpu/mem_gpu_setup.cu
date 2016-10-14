@@ -49,6 +49,7 @@ void mem_gpu_init()
 	dimension2 = Y.get_dimension3();
 	checkCudaErrors(cudaMalloc((void **) &d_Y_batch, (size_batch*dimension2)*sizeof(float)));
 	checkCudaErrors(cudaMalloc((void **) &d_Y_batch_exp, (size_batch*dimension2)*sizeof(float)));
+	checkCudaErrors(cudaMalloc((void **) &d_error_batch, (size_batch*dimension2)*sizeof(float)));
 	//
 	checkCudaErrors(cudaMalloc((void **) &d_cellfactor_batch, (size_batch*D)*sizeof(float)));
 	//
@@ -69,31 +70,38 @@ void mem_gpu_init()
 	int * list_beta_cis_start = beta_cis.get_list_start();
 	checkCudaErrors(cudaMalloc((void **) &d_list_beta_cis_start, J*sizeof(int)));
 	checkCudaErrors(cudaMemcpy(d_list_beta_cis_start, list_beta_cis_start, J*sizeof(int), cudaMemcpyHostToDevice));
-
-
-
-
-	//== d_beta_cis_sub
+	//== d_list_beta_cis_geneindex
+	int * list_beta_cis_geneindex = beta_cis.get_list_beta_cis_geneindex();
 	int amount = beta_cis.get_amount();
+	checkCudaErrors(cudaMalloc((void **) &d_list_beta_cis_geneindex, amount*sizeof(int)));
+	checkCudaErrors(cudaMemcpy(d_list_beta_cis_geneindex, list_beta_cis_geneindex, amount*sizeof(int), cudaMemcpyHostToDevice));
+	//== d_beta_cis_sub, d_der_cis_sub
+	//int amount = beta_cis.get_amount();
 	checkCudaErrors(cudaMalloc((void **) &d_beta_cis_sub, amount*sizeof(float)));
+	checkCudaErrors(cudaMalloc((void **) &d_der_cis_sub, amount*sizeof(float)));
 
-	//== d_beta_batch, d_beta_batch_reshape
+
+	//== d_beta_batch, d_beta_batch_reshape, d_der_batch
 	int dimension1_beta_batch = beta_batch.get_dimension1();
 	int dimension2_beta_batch = beta_batch.get_dimension2();
 	checkCudaErrors(cudaMalloc((void **) &d_beta_batch, (dimension1_beta_batch*dimension2_beta_batch)*sizeof(float)));
 	checkCudaErrors(cudaMalloc((void **) &d_beta_batch_reshape, (dimension1_beta_batch*dimension2_beta_batch)*sizeof(float)));
+	checkCudaErrors(cudaMalloc((void **) &d_der_batch, (dimension1_beta_batch*dimension2_beta_batch)*sizeof(float)));
 
-	//== d_beta_cellfactor1, d_beta_cellfactor1_reshape
+	//== d_beta_cellfactor1, d_beta_cellfactor1_reshape, d_der_cellfactor1
 	int dimension1_beta_cellfactor1 = beta_cellfactor1.get_dimension1();
 	int dimension2_beta_cellfactor1 = beta_cellfactor1.get_dimension2();
 	checkCudaErrors(cudaMalloc((void **) &d_beta_cellfactor1, (dimension1_beta_cellfactor1*dimension2_beta_cellfactor1)*sizeof(float)));
 	checkCudaErrors(cudaMalloc((void **) &d_beta_cellfactor1_reshape, (dimension1_beta_cellfactor1*dimension2_beta_cellfactor1)*sizeof(float)));
+	checkCudaErrors(cudaMalloc((void **) &d_der_cellfactor1, (dimension1_beta_cellfactor1*dimension2_beta_cellfactor1)*sizeof(float)));
 
-	//== d_beta_cellfactor2_sub, d_beta_cellfactor2_sub_reshape
+	//== d_beta_cellfactor2_sub, d_beta_cellfactor2_sub_reshape, d_der_cellfactor2_sub
 	int dimension1_beta_cellfactor2 = beta_cellfactor2.get_dimension2();
 	int dimension2_beta_cellfactor2 = beta_cellfactor2.get_dimension3();
 	checkCudaErrors(cudaMalloc((void **) &d_beta_cellfactor2_sub, (dimension1_beta_cellfactor2*dimension2_beta_cellfactor2)*sizeof(float)));
 	checkCudaErrors(cudaMalloc((void **) &d_beta_cellfactor2_sub_reshape, (dimension1_beta_cellfactor2*dimension2_beta_cellfactor2)*sizeof(float)));
+	checkCudaErrors(cudaMalloc((void **) &d_der_cellfactor2_sub, (dimension1_beta_cellfactor2*dimension2_beta_cellfactor2)*sizeof(float)));
+
 
 
 
@@ -108,22 +116,30 @@ void mem_gpu_release()
 	checkCudaErrors(cudaFree(d_Z_batch));
 	checkCudaErrors(cudaFree(d_Y_batch));
 	checkCudaErrors(cudaFree(d_Y_batch_exp));
+	checkCudaErrors(cudaFree(d_error_batch));
 	checkCudaErrors(cudaFree(d_cellfactor_batch));
 	checkCudaErrors(cudaFree(d_cellfactor_batch_new));
 
 	checkCudaErrors(cudaFree(d_list_cis_start));
 	checkCudaErrors(cudaFree(d_list_cis_end));
 	checkCudaErrors(cudaFree(d_list_beta_cis_start));
+	checkCudaErrors(cudaFree(d_list_beta_cis_geneindex));
 	checkCudaErrors(cudaFree(d_beta_cis_sub));
+	checkCudaErrors(cudaFree(d_der_cis_sub));
 
 	checkCudaErrors(cudaFree(d_beta_batch));
 	checkCudaErrors(cudaFree(d_beta_batch_reshape));
+	checkCudaErrors(cudaFree(d_der_batch));
 
 	checkCudaErrors(cudaFree(d_beta_cellfactor1));
 	checkCudaErrors(cudaFree(d_beta_cellfactor1_reshape));
+	checkCudaErrors(cudaFree(d_der_cellfactor1));
 
 	checkCudaErrors(cudaFree(d_beta_cellfactor2_sub));
 	checkCudaErrors(cudaFree(d_beta_cellfactor2_sub_reshape));
+	checkCudaErrors(cudaFree(d_der_cellfactor2_sub));
+
+
 
 	return;
 }
@@ -205,6 +221,7 @@ void mem_gpu_settissue(int k)
 	int dimension2_beta_cellfactor2 = beta_cellfactor2.get_dimension3();
 	checkCudaErrors(cudaMemcpy(d_beta_cellfactor2_sub, beta_cellfactor2_pointer, (dimension1_beta_cellfactor2*dimension2_beta_cellfactor2)*sizeof(float), cudaMemcpyHostToDevice));
 	
+
 
 
 	//==##== collector ==##==

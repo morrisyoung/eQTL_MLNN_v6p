@@ -73,6 +73,7 @@ der_batch = []
 
 
 
+
 ##=============/=============/=============/=============/=============/=============/=============/=============
 ##=============/=============/=============/=============/=============/=============/=============/=============
 ##=============/=============/=============/=============/=============/=============/=============/=============
@@ -338,10 +339,16 @@ if __name__ == "__main__":
 	mapping_cis = np.load("./data_simu_data/mapping_cis.npy")
 	Z = np.load("./data_simu_data/Z.npy")
 
+	'''
 	beta_cis = np.load("./data_simu_init/beta_cis.npy")
 	beta_cellfactor1 = np.load("./data_simu_init/beta_cellfactor1.npy")
 	beta_cellfactor2 = np.load("./data_simu_init/beta_cellfactor2.npy")
 	beta_batch = np.load("./data_simu_init/beta_batch.npy")
+	'''
+	beta_cis = np.load("./data_simu_data/beta_cis.npy")
+	beta_cellfactor1 = np.load("./data_simu_data/beta_cellfactor1.npy")
+	beta_cellfactor2 = np.load("./data_simu_data/beta_cellfactor2.npy")
+	beta_batch = np.load("./data_simu_data/beta_batch.npy")
 	##==== fill dimension
 	I = len(X[0])
 	J = len(Y[0][0])
