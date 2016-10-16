@@ -14,14 +14,15 @@ if __name__=="__main__":
 
 
 	##==== total likelihood
-	arr = np.load("./result/list_error.npy")
-
-
-
-
 	"""
+	arr = np.load("./result/list_error.npy")
+	"""
+
+
+
+
 	arr = []
-	file = open("./result/loglike_total_online.txt", 'r')
+	file = open("./result/error_total_online.txt", 'r')
 	while 1:
 		line = (file.readline()).strip()
 		if not line:
@@ -29,7 +30,7 @@ if __name__=="__main__":
 
 		arr.append(float(line))
 	file.close()
-	"""
+
 
 
 	##==== other likelihood terms
@@ -62,11 +63,11 @@ if __name__=="__main__":
 	print arr[:10]
 	print len(list_tissue_color)
 	print len(list_tissue)
-	#plt.plot(arr, 'r')
+	plt.plot(arr, 'r')
 
 
 
-
+	"""
 	## TODO: manually specify something here
 	num_iter_out = 7
 	num_iter_in = 100
@@ -87,8 +88,7 @@ if __name__=="__main__":
 		line = mlines.Line2D([], [], color=list_tissue_color[k], label=list_tissue[k])
 		list_handle.append(line)
 	plt.legend(handles=list_handle)
-
-
+	"""
 
 
 

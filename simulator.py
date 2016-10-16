@@ -6,6 +6,7 @@
 
 
 
+
 import numpy as np
 import math
 import timeit
@@ -37,6 +38,8 @@ D2 = 400
 
 
 
+
+'''
 ##==== scale of the input data (real data)
 I = 824113					# num of SNPs
 J = 21150					# num of genes
@@ -45,6 +48,7 @@ L = 3000000000				# length of chromosome
 N = 450						# num of individuals
 D = 400						# num of cell factors
 B = 20						# num of batch variables
+'''
 '''
 ##==== scale of the input data (10% of real data)
 I = 100000					# num of SNPs
@@ -69,6 +73,22 @@ B = 10						# num of batch variables
 
 
 
+##==== test:
+##==== scale of the input data (10% of real data)
+I = 100000					# num of SNPs
+J = 2000					# num of genes
+L = 355000000				# length of chromosome
+
+D = 40						# num of cell factors
+
+K = 13						# num of tissues
+N = 159						# num of individuals
+B = 10						# num of batch variables
+
+
+
+
+
 
 
 ##==== variables
@@ -87,8 +107,93 @@ beta_batch = []				# matrix of Individuals x Batches
 
 
 
+##=============/=============/=============/=============/=============/=============/=============/=============
+##=============/=============/=============/=============/=============/=============/=============/=============
+##=============/=============/=============/=============/=============/=============/=============/=============
+##=============/=============/=============/=============/=============/=============/=============/=============
 
 
+
+##================================
+##==== save data in txt format
+##================================
+## prepare the numpy input data (and init parameters) into txt format such that C++ can use
+"""
+The format of the input/output data:
+1. Everything in Matrix format should be in matrix format
+2. The tensor has one line meta information, the shape of the tensor, and then the tensor is spread as a matrix (collapsed the first dimension)
+3. I will also re-prepare the incomplete tensor such that there are only numbers: integer-indexing tissues as usual; inside each tissue, integer indexing individual positions to have this expression sample (one extra integer at the head of each line)
+"""
+def reformat_matrix(matrix, filename):
+	shape = matrix.shape
+	dimension1 = shape[0]
+	dimension2 = shape[1]
+
+	file = open(filename, 'w')
+	for i in range(dimension1):
+		for j in range(dimension2):
+			value = matrix[i][j]
+			file.write(str(value) + '\t')
+		file.write('\n')
+	file.close()
+
+	return
+
+
+def reformat_tensor(tensor, filename):
+	shape = tensor.shape
+	dimension1 = shape[0]
+	dimension2 = shape[1]
+	dimension3 = shape[2]
+
+	file = open(filename, 'w')
+	file.write(str(dimension1) + '\t' + str(dimension2) + '\t' + str(dimension3) + '\n')
+	for i in range(dimension1):
+		for j in range(dimension2):
+
+			for count in range(dimension3):
+				value = tensor[i][j][count]
+				file.write(str(value) + '\t')
+			file.write('\n')
+	file.close()
+
+	return
+
+
+def reformat_mapping_cis(matrix, filename):
+	shape = matrix.shape
+	dimension1 = shape[0]
+	dimension2 = shape[1]
+
+	file = open(filename, 'w')
+	for i in range(dimension1):
+		for j in range(dimension2):
+			value = matrix[i][j]
+			file.write(str(value) + '\t')
+		file.write('\n')
+	file.close()
+
+	return
+
+
+def reformat_beta_cis(tensor, filename):
+	shape = tensor.shape
+	dimension1 = shape[0]
+	dimension2 = shape[1]
+
+	file = open(filename, 'w')
+	file.write(str(dimension1) + '\t' + str(dimension2) + '\n')
+	for i in range(dimension1):
+		for j in range(dimension2):
+
+			dimension3 = len(tensor[i][j])
+			for count in range(dimension3):
+				value = tensor[i][j][count]
+				file.write(str(value) + '\t')
+			file.write('\n')
+	file.close()
+
+	return
 
 
 
@@ -497,6 +602,21 @@ if __name__ == "__main__":
 
 
 
+	##==== reformat data
+	reformat_matrix(X, "./data_simu_data/X.txt")
+	reformat_matrix(Z, "./data_simu_data/Z.txt")
+	reformat_tensor(Y, "./data_simu_data/Y.txt")
+	reformat_mapping_cis(mapping_cis, "./data_simu_data/mapping_cis.txt")
+
+	reformat_beta_cis(beta_cis, "./data_simu_data/beta_cis.txt")
+	reformat_matrix(beta_cellfactor1, "./data_simu_data/beta_cellfactor1.txt")
+	reformat_tensor(beta_cellfactor2, "./data_simu_data/beta_cellfactor2.txt")
+	reformat_matrix(beta_batch, "./data_simu_data/beta_batch.txt")
+
+
+
+
+
 	##====================================================
 	## simu another copy as the init (randomly use another copy to init -- we can of course init more wisely)
 	##====================================================
@@ -517,7 +637,11 @@ if __name__ == "__main__":
 	np.save("./data_simu_init/beta_batch", beta_batch)
 
 
-
+	##==== reformat data
+	reformat_beta_cis(beta_cis, "./data_simu_init/beta_cis.txt")
+	reformat_matrix(beta_cellfactor1, "./data_simu_init/beta_cellfactor1.txt")
+	reformat_tensor(beta_cellfactor2, "./data_simu_init/beta_cellfactor2.txt")
+	reformat_matrix(beta_batch, "./data_simu_init/beta_batch.txt")
 
 
 

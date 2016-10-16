@@ -26,7 +26,6 @@ void fbward_gd(int);
 
 
 
-
 #endif
 
 // end of fbward_gd.h

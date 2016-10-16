@@ -21,7 +21,7 @@ import timeit
 
 ##==== learning setting
 ## TODO: to determine some parameters
-num_iter_out = 100
+num_iter_out = 1
 num_iter_in = 100
 size_batch = 20
 #rate_learn = 0.0001					# for brain and chr22
@@ -339,7 +339,7 @@ if __name__ == "__main__":
 	mapping_cis = np.load("./data_simu_data/mapping_cis.npy")
 	Z = np.load("./data_simu_data/Z.npy")
 
-	'''
+
 	beta_cis = np.load("./data_simu_init/beta_cis.npy")
 	beta_cellfactor1 = np.load("./data_simu_init/beta_cellfactor1.npy")
 	beta_cellfactor2 = np.load("./data_simu_init/beta_cellfactor2.npy")
@@ -349,6 +349,7 @@ if __name__ == "__main__":
 	beta_cellfactor1 = np.load("./data_simu_data/beta_cellfactor1.npy")
 	beta_cellfactor2 = np.load("./data_simu_data/beta_cellfactor2.npy")
 	beta_batch = np.load("./data_simu_data/beta_batch.npy")
+	'''
 	##==== fill dimension
 	I = len(X[0])
 	J = len(Y[0][0])
@@ -380,6 +381,14 @@ if __name__ == "__main__":
 	## Z
 	array_ones = (np.array([np.ones(N)])).T
 	Z = np.concatenate((Z, array_ones), axis=1)									# N x (B+1)
+
+
+
+
+
+	##==== timer, for speed test
+	start_time_total = timeit.default_timer()
+
 
 
 
@@ -421,6 +430,12 @@ if __name__ == "__main__":
 
 	print "done!"
 
+
+
+
+
+	##==== timer, for speed test
+	print "speed:", (timeit.default_timer() - start_time_total) / (num_iter_out * num_iter_in * K)
 
 
 

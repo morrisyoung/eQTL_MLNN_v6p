@@ -35,7 +35,8 @@ using namespace std;
 
 void mem_gpu_init()
 {
-	int dimension1, dimension2;
+	//int dimension1, dimension2;
+	int dimension2;
 
 
 	//== d_X_batch, d_Z_batch, d_Y_batch, d_Y_batch_exp, d_cellfactor_batch, d_cellfactor_batch_new
@@ -234,9 +235,11 @@ void mem_gpu_settissue(int k)
 
 
 
-
-void mem_gpu_destroytissue()
+// release tissue relevant containers, and copy back learned parameters for this tissue
+void mem_gpu_destroytissue(int k)
 {
+
+	//==== release
 	checkCudaErrors(cudaFree(d_X_sub));
 	checkCudaErrors(cudaFree(d_Z_sub));
 	checkCudaErrors(cudaFree(d_Y_sub));
@@ -245,7 +248,37 @@ void mem_gpu_destroytissue()
 	checkCudaErrors(cudaFree(d_cellfactor_sub));
 	checkCudaErrors(cudaFree(d_cellfactor_sub_new));
 
+
+
+	//==== copy back parameters
+	//== d_beta_cis_sub
+	float * beta_cis_sub = beta_cis.get_incomp_matrix_at(k);
+	int amount = beta_cis.get_amount();
+	checkCudaErrors(cudaMemcpy(beta_cis_sub, d_beta_cis_sub, amount*sizeof(float), cudaMemcpyDeviceToHost));
+
+	//== d_beta_batch
+	float * beta_batch_pointer = beta_batch.get_pointer();
+	int dimension1_beta_batch = beta_batch.get_dimension1();
+	int dimension2_beta_batch = beta_batch.get_dimension2();
+	checkCudaErrors(cudaMemcpy(beta_batch_pointer, d_beta_batch, (dimension1_beta_batch*dimension2_beta_batch)*sizeof(float), cudaMemcpyDeviceToHost));
+
+	//== d_beta_cellfactor1
+	float * beta_cellfactor1_pointer = beta_cellfactor1.get_pointer();
+	int dimension1_beta_cellfactor1 = beta_cellfactor1.get_dimension1();
+	int dimension2_beta_cellfactor1 = beta_cellfactor1.get_dimension2();
+	checkCudaErrors(cudaMemcpy(beta_cellfactor1_pointer, d_beta_cellfactor1, (dimension1_beta_cellfactor1*dimension2_beta_cellfactor1)*sizeof(float), cudaMemcpyDeviceToHost));
+
+	//== d_beta_cellfactor2_sub
+	float * beta_cellfactor2_pointer = beta_cellfactor2.get_matrix_at(k);
+	int dimension1_beta_cellfactor2 = beta_cellfactor2.get_dimension2();
+	int dimension2_beta_cellfactor2 = beta_cellfactor2.get_dimension3();
+	checkCudaErrors(cudaMemcpy(beta_cellfactor2_pointer, d_beta_cellfactor2_sub, (dimension1_beta_cellfactor2*dimension2_beta_cellfactor2)*sizeof(float), cudaMemcpyDeviceToHost));
+
+
 	return;
 }
+
+
+
 
 

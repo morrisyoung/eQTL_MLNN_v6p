@@ -38,7 +38,7 @@ extern int B;						// num of batch variables
 
 
 //=================================================
-extern Maatrix X;						// matrix of Individuals x SNPs
+extern Matrix X;						// matrix of Individuals x SNPs
 extern Tensor_expr Y;					// tensor of gene expression
 extern Map_list mapping_cis;			// list of (index start, index end)
 extern Matrix Z;						// matrix of Individuals x Batches
@@ -77,10 +77,10 @@ extern float * d_error_batch;
 extern float * d_cellfactor_batch;
 extern float * d_cellfactor_batch_new;
 
-extern float * d_list_cis_start;
-extern float * d_list_cis_end;
-extern float * d_list_beta_cis_start;
-extern float * d_list_beta_cis_geneindex;
+extern int * d_list_cis_start;
+extern int * d_list_cis_end;
+extern int * d_list_beta_cis_start;
+extern int * d_list_beta_cis_geneindex;
 extern float * d_beta_cis_sub;
 
 extern float * d_beta_batch;
@@ -103,6 +103,8 @@ extern float * d_Y_sub;
 extern float * d_Y_sub_exp;
 extern float * d_cellfactor_sub;
 extern float * d_cellfactor_sub_new;
+
+
 
 
 

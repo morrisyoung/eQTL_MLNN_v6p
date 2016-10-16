@@ -1,8 +1,9 @@
-// utility.h
+// library.h
 // function:
 
-#ifndef UTILITY_H
-#define UTILITY_H
+#ifndef LIBRARY_H
+#define LIBRARY_H
+
 
 
 
@@ -21,6 +22,7 @@ using namespace std;
 
 
 
+
 class Map_list
 {
 	int dimension;									// number of genes
@@ -29,6 +31,25 @@ class Map_list
 	int * list_end;									// list of end pos
 
 public:
+
+
+	// used for loading data, since we might use other containers to load data first of all
+	void init(vector<vector<int>> & container)
+	{
+		dimension = container.size();
+		list_start = (int *)calloc( dimension, sizeof(int) );
+		list_end = (int *)calloc( dimension, sizeof(int) );
+
+		for(int i=0; i<dimension; i++)
+		{
+			list_start[i] = (container.at(i)).at(0);
+			list_end[i] = (container.at(i)).at(1);
+		}
+
+		return;
+	}
+
+
 
 	int get_start_at(int pos)
 	{
@@ -55,11 +76,14 @@ public:
 
 
 
+//=============/=============/=============/=============/=============/=============/=============/=============
+//=============/=============/=============/=============/=============/=============/=============/=============
+//=============/=============/=============/=============/=============/=============/=============/=============
+//=============/=============/=============/=============/=============/=============/=============/=============
 
-//=============/=============/=============/=============/=============/=============/=============/=============
-//=============/=============/=============/=============/=============/=============/=============/=============
-//=============/=============/=============/=============/=============/=============/=============/=============
-//=============/=============/=============/=============/=============/=============/=============/=============
+
+
+
 
 class Matrix
 {
@@ -77,6 +101,29 @@ public:
 		return;
 	}
 
+
+	// used for loading data, since we might use other containers to load data first of all
+	void init(vector<vector<float>> & container)
+	{
+		dimension1 = container.size();
+		dimension2 = (container.at(0)).size();
+		matrix = (float *)calloc( dimension1 * dimension2, sizeof(float) );
+
+		int count = 0;
+		for(int i=0; i<dimension1; i++)
+		{
+			for(int j=0; j<dimension2; j++)
+			{
+				float value = (container.at(i)).at(j);
+				matrix[count] = value;
+				count += 1;
+			}
+		}
+
+		return;
+	}
+
+
 	float * get_array_at(int pos)
 	{
 		return matrix + (pos-1)*dimension2;
@@ -93,6 +140,29 @@ public:
 		}
 		return;
 	}
+
+
+
+	void append_column_one()
+	{
+		// the content update
+		float * matrix_new = (float *)calloc( dimension1 * (dimension2+1), sizeof(float) );
+		for(int i=0; i<dimension1; i++)
+		{
+			float * pointer = matrix_new + i*(dimension2+1);
+			float * pointer_ref = matrix + i*dimension2;
+			memcpy( pointer, pointer_ref, dimension2*sizeof(float) );
+			*(pointer + dimension2) = 1;
+		}
+		free(matrix);
+		matrix = matrix_new;
+		// the boundary update
+		dimension1 = dimension1;
+		dimension2 = dimension2+1;
+		return;
+	}
+
+
 
 	int get_dimension1()
 	{
@@ -151,26 +221,6 @@ public:
 		return;
 	}
 
-	// used for loading data, since we might use other containers to load data first of all
-	void init(vector<vector<float>> & container)
-	{
-		dimension1 = container.size();
-		dimension2 = (container.at(0)).size();
-		matrix = (float *)calloc( dimension1 * dimension2, sizeof(float) );
-
-		int count = 0;
-		for(int i=0; i<dimension1; i++)
-		{
-			for(int j=0; j<dimension2; j++)
-			{
-				float value = (container.at(i)).at(j);
-				matrix[count] = value;
-				count += 1;
-			}
-		}
-
-		return;
-	}
 
 	void print_shape()
 	{
@@ -178,21 +228,6 @@ public:
 		return;
 	}
 
-	int get_dimension1()
-	{
-		return dimension1;
-	}
-
-	int get_dimension2()
-	{
-		return dimension2;
-	}
-
-	// NOTE: use the following function carefully -- do not modify elements from outside
-	float * get_matrix()
-	{
-		return matrix;
-	}
 
 	float get_element(int ind1, int ind2)
 	{
@@ -294,17 +329,11 @@ public:
 		fclose(file_out);
 		return;
 	}
-
-
-	// delete object
-	void release()
-	{
-		free(matrix);
-		return;
-	}
 	*/
 
 };
+
+
 
 
 
@@ -318,11 +347,66 @@ class Tensor
 
 public:
 
+	// used for loading data, since we might use other containers to load data first of all
+	void init(vector<vector<vector<float>>> & container)
+	{
+		dimension1 = container.size();
+		dimension2 = (container.at(0)).size();
+		dimension3 = ((container.at(0)).at(0)).size();
+		long int dimension = dimension1 * dimension2 * dimension3;
+		tensor = (float *)calloc( dimension, sizeof(float) );
+
+		long int count = 0;
+		for(long int i=0; i<dimension1; i++)
+		{
+			for(long int j=0; j<dimension2; j++)
+			{
+				for(long int d=0; d<dimension3; d++)
+				{
+					float value = ((container.at(i)).at(j)).at(d);
+					tensor[count] = value;
+					count += 1;
+				}
+			}
+		}
+
+		return;
+	}
+
+
+	long int get_dimension1()
+	{
+		return dimension1;
+	}
+
+	long int get_dimension2()
+	{
+		return dimension2;
+	}
+
+	long int get_dimension3()
+	{
+		return dimension3;
+	}
+
+	// NOTE: use the following function carefully -- do not modify elements from outside
+	float * get_tensor()
+	{
+		return tensor;
+	}
 
 	float * get_matrix_at(int pos)
 	{
 		float * pointer = tensor + pos*(dimension2*dimension3);
 		return pointer;
+	}
+
+
+	// delete object
+	void release()
+	{
+		free(tensor);
+		return;
 	}
 
 
@@ -368,31 +452,6 @@ public:
 		return;
 	}
 
-	// used for loading data, since we might use other containers to load data first of all
-	void init(vector<vector<vector<float>>> & container)
-	{
-		dimension1 = container.size();
-		dimension2 = (container.at(0)).size();
-		dimension3 = ((container.at(0)).at(0)).size();
-		long int dimension = dimension1 * dimension2 * dimension3;
-		tensor = (float *)calloc( dimension, sizeof(float) );
-
-		long int count = 0;
-		for(long int i=0; i<dimension1; i++)
-		{
-			for(long int j=0; j<dimension2; j++)
-			{
-				for(long int d=0; d<dimension3; d++)
-				{
-					float value = ((container.at(i)).at(j)).at(d);
-					tensor[count] = value;
-					count += 1;
-				}
-			}
-		}
-
-		return;
-	}
 
 	void print_shape()
 	{
@@ -400,26 +459,6 @@ public:
 		return;
 	}
 
-	long int get_dimension1()
-	{
-		return dimension1;
-	}
-
-	long int get_dimension2()
-	{
-		return dimension2;
-	}
-
-	long int get_dimension3()
-	{
-		return dimension3;
-	}
-
-	// NOTE: use the following function carefully -- do not modify elements from outside
-	float * get_tensor()
-	{
-		return tensor;
-	}
 
 	float * get_tensor_at(long int i)
 	{
@@ -510,18 +549,18 @@ public:
 		return;
 	}
 
-
-	// delete object
-	void release()
-	{
-		free(tensor);
-		return;
-	}
 	*/
 
 
 };
 
+
+
+
+//=============/=============/=============/=============/=============/=============/=============/=============
+//=============/=============/=============/=============/=============/=============/=============/=============
+//=============/=============/=============/=============/=============/=============/=============/=============
+//=============/=============/=============/=============/=============/=============/=============/=============
 
 
 
@@ -538,15 +577,49 @@ class Tensor_expr
 
 public:
 
-	void load()
+
+	void init_full(int length1, int length2, int length3, float * pointer_tensor)
 	{
+		//
+		dimension1 = length1;
+		//
+		for(int i=0; i<dimension1; i++)
+		{
+			list_dimension2.push_back(length2);
+			int * pointer = (int *)calloc( length2, sizeof(int) );
+			list_list_indiv_pos.push_back(pointer);
+			for(int j = 0; j<length2; j++)
+			{
+				(list_list_indiv_pos.at(i))[j] = j;
+			}
+		}
+		//
+		dimension3 = length3;
+		//
+		for(int i=0; i<dimension1; i++)
+		{
+			float * pointer = (float *)calloc( length2*length3, sizeof(float) );
+			list_matrix.push_back(pointer);
+
+			float * pointer_ref = pointer_tensor + i*(length2*length3);
+			memcpy( list_matrix.at(i), pointer_ref, (length2*length3)*sizeof(float) );
+		}
+
 		return;
 	}
+
+
 
 	int get_dimension2_at(int pos)
 	{
 		return list_dimension2.at(pos);
 	}
+
+	int get_dimension3()
+	{
+		return dimension3;
+	}
+
 
 	float * get_matrix_at(int pos)
 	{
@@ -564,6 +637,18 @@ public:
 	}
 
 
+	// delete object
+	void release()
+	{
+		for(int i=0; i<dimension1; i++)
+		{
+			free(list_list_indiv_pos.at(i));
+			free(list_matrix.at(i));
+		}
+
+		return;
+	}
+
 
 };
 
@@ -573,7 +658,7 @@ class Tensor_beta_cis
 {
 	int dimension1;										// number of tissues
 	int dimension2;										// number of genes
-	//vector<int> list_dimension3;						// number of dimension3 for different dimension2 (gene)
+	vector<int> list_dimension3;						// number of dimension3 for different dimension2 (gene)
 	//int * list_dimension3;							// same as above
 	int * list_start;									// kind of same as above
 	vector<float *>	list_incomp_matrix;					// incomplete beta matrix for different tissues
@@ -582,6 +667,71 @@ class Tensor_beta_cis
 
 
 public:
+
+
+	// used for loading data, since we might use other containers to load data first of all
+	void init(vector<vector<vector<float>>> & container)
+	{
+		//==== meta info
+		dimension1 = container.size();
+		dimension2 = (container.at(0)).size();
+		//
+		amount = 0;
+		for(int i=0; i<dimension2; i++)
+		{
+			int dimension3 = ((container.at(0)).at(i)).size();
+			amount += dimension3;
+			list_dimension3.push_back(dimension3);
+		}
+		//
+		list_start = (int *)calloc( dimension2, sizeof(int) );
+		for(int i=0; i<dimension2; i++)
+		{
+			if(i==0)
+			{
+				list_start[i] = 0;
+			}
+			else
+			{
+				list_start[i] = list_start[i-1] + list_dimension3[i-1];
+			}
+		}
+		//
+		list_beta_cis_geneindex = (int *)calloc( amount, sizeof(int) );
+		int pos = 0;
+		for(int i=0; i<dimension2; i++)
+		{
+			int dimension3 = list_dimension3.at(i);
+			for(int j=0; j<dimension3; j++)
+			{
+				list_beta_cis_geneindex[pos] = i;
+				pos += 1;
+			}
+		}
+
+
+		//==== fill in
+		for(long int i=0; i<dimension1; i++)
+		{
+			float * pointer = (float *)calloc( amount, sizeof(float) );
+			list_incomp_matrix.push_back(pointer);
+
+			int pos = 0;
+			for(int j=0; j<dimension2; j++)
+			{
+				int dimension3 = list_dimension3.at(j);
+				for(int d=0; d<dimension3; d++)
+				{
+					float value = ((container.at(i)).at(j)).at(d);
+					(list_incomp_matrix.at(i))[pos] = value;
+					pos += 1;
+				}
+			}
+		}
+
+		return;
+	}
+
 
 
 	void load()
@@ -611,6 +761,20 @@ public:
 	}
 
 
+	// delete object
+	void release()
+	{
+		free(list_start);
+		for(int i=0; i<dimension1; i++)
+		{
+			free(list_incomp_matrix.at(i));
+		}
+		free(list_beta_cis_geneindex);
+
+		return;
+	}
+
+
 };
 
 
@@ -618,14 +782,12 @@ public:
 
 
 
-// other function declearations
-
 
 
 
 
 #endif
 
-// end of utility.h
+// end of library.h
 
 

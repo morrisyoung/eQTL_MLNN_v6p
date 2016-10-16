@@ -5,6 +5,10 @@
 #include "global.h"
 #include "library.h"
 #include "mem_gpu_setup.h"
+#include "data_interface.h"
+#include "fbward_gd.h"
+#include "cal_error.h"
+
 
 
 
@@ -16,10 +20,15 @@ using namespace std;
 
 //==== learning setting
 // TODO: to determine some parameters
-int num_iter_out = 100;
+int num_iter_out = 1;
 int num_iter_in = 100;
 int size_batch = 20;
 float rate_learn = 0.0000001;
+
+
+
+
+
 
 
 //==== to be filled later on by data loading program
@@ -69,10 +78,10 @@ float * d_error_batch;
 float * d_cellfactor_batch;
 float * d_cellfactor_batch_new;
 
-float * d_list_cis_start;
-float * d_list_cis_end;
-float * d_list_beta_cis_start;
-float * d_list_beta_cis_geneindex;
+int * d_list_cis_start;
+int * d_list_cis_end;
+int * d_list_beta_cis_start;
+int * d_list_beta_cis_geneindex;
 float * d_beta_cis_sub;
 
 float * d_beta_batch;
@@ -108,7 +117,7 @@ int main()
 	cout << "now entering the sampling program..." << endl;
 
 
-	//==== data loading, and data preparation
+	//==== data loading, and data preparation (loading data always first of all)
 	data_load_simu();
 	//data_load_real();
 	error_init();
@@ -130,7 +139,7 @@ int main()
 		{
 			// start current tissue
 			// init gpu memory for this tissue
-			mem_gpu_settissue();
+			mem_gpu_settissue(k);
 
 
 
@@ -169,7 +178,7 @@ int main()
 
 
 			// init gpu memory for this tissue
-			mem_gpu_destroytissue();
+			mem_gpu_destroytissue(k);
 			// end current tissue
 		}
 		// end current outer iter

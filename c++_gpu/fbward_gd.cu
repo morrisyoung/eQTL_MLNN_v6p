@@ -106,6 +106,8 @@ void batch_fill(int k)
 	X_batch.release();
 	Z_batch.release();
 	Y_batch.release();
+
+	return;
 }
 
 
@@ -486,7 +488,7 @@ void fbward_gd(int k)
 	//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==//==
 	// d_beta_cis_sub
 	{
-		int amount = beta_cis.get_amount()
+		int amount = beta_cis.get_amount();
 		//
 		int block_size = 32;
 		dim3 threads(block_size, block_size);

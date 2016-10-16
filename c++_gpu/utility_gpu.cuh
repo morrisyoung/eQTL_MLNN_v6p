@@ -53,8 +53,8 @@ kernel_cal_cis_matrixmul(float * d_Y_sub_exp, int dimension1, int dimension2, fl
 	{
 		int cis_start = d_list_cis_start[j];
 		int cis_end = d_list_cis_end[j];
-		int amount = cis_end - start + 1;
-		int snp_start = i*dimension2_X + start;
+		int amount = cis_end - cis_start + 1;
+		int snp_start = i*dimension2_X + cis_start;
 		int coef_start = d_list_beta_cis_start[j];
 		//
 		float result = 0;
@@ -238,7 +238,7 @@ kernel_cal_sosod_sumsub(int sub_length, float * d_sumY_temp, float * d_sum)
 		{
 			sum += d_sumY_temp[k];
 		}
-		d_sum = sum;
+		(*d_sum) = sum;
 	}
 
 	return;
@@ -279,13 +279,13 @@ kernel_cal_subtract(int dimension1, int dimension2, float * result, float * matr
 
 
 
-
-
 //=============/=============/=============/=============/=============/=============/=============/=============
 //=============/=============/=============/=============/=============/=============/=============/=============
 //=============/=============/=============/=============/=============/=============/=============/=============
 //=============/=============/=============/=============/=============/=============/=============/=============
 // back-propagation routines
+
+
 
 
 
@@ -485,6 +485,7 @@ kernel_cal_matrix_multion(int dimension1, int dimension2, float * result, float 
 //=============/=============/=============/=============/=============/=============/=============/=============
 //=============/=============/=============/=============/=============/=============/=============/=============
 // GD routines
+
 
 
 

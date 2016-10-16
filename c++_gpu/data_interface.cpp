@@ -58,6 +58,55 @@ void load_matrix(Matrix & matrix, char * filename)
 
 
 
+
+
+// similar to matrix, but loading int values
+void load_mapping_cis(Map_list & mapping_cis, char * filename)
+{
+	//==== load data into temporary container
+	vector<vector<int>> container_temp;
+
+	char type[10] = "r";
+	filehandle file(filename, type);
+
+	long input_length = 1000000000;
+	char * line = (char *)malloc( sizeof(char) * input_length );
+	while(1)
+	{
+		int end = file.readline(line, input_length);
+		if(end)
+			break;
+
+		line_class line_obj(line);
+		line_obj.split_tab();
+		vector<int> vec;
+		for(unsigned i=0; i<line_obj.size(); i++)
+		{
+			char * pointer = line_obj.at(i);
+			//float value = stof(pointer);			// NOTE: there are double-range numbers
+			//float value = stod(pointer);
+			int value = atoi(pointer);				// NOTE: string to int
+			vec.push_back(value);
+		}
+		line_obj.release();
+
+		container_temp.push_back(vec);
+	}
+	free(line);
+	file.close();
+
+
+	//==== load data into Map_list from temporary container
+	mapping_cis.init(container_temp);
+
+	return;
+}
+
+
+
+
+
+
 // load a tensor into Tensor tensor, with filename as char * filename
 // since I want to keep the tensor as a whole, other than splitting them into sub-files, I will use meta info (first line, shape of tensor)
 void load_tensor(Tensor & tensor, char * filename)
@@ -135,257 +184,69 @@ void load_tensor(Tensor & tensor, char * filename)
 
 
 
-
-//// loading the simulated data (I'll probably work on a full tensor, which has the upper bound for the computing)
-void data_load_simu()
+// loading the beta_cis, an incomplete tensor
+// first line has the met info, first dimension and second dimension of the tensor (which should be regular)
+void load_beta_cis(Tensor_beta_cis & tensor, char * filename)
 {
+	char type[10] = "r";
+	filehandle file(filename, type);
+
+	long input_length = 1000000000;
+	char * line = (char *)malloc( sizeof(char) * input_length );
 
 
+	//==== first, get tensor shape
+	int dimension1 = 0;
+	int dimension2 = 0;
 
-"""
-	##============
-	## prep
-	##============
-	##==== load data (simu)
-	X = np.load("./data_simu_data/X.npy")
-	Y = np.load("./data_simu_data/Y.npy")
-	mapping_cis = np.load("./data_simu_data/mapping_cis.npy")
-	Z = np.load("./data_simu_data/Z.npy")
+	file.readline(line, input_length);
+	line_class line_obj(line);
+	line_obj.split_tab();
+	char * pointer;
+	//== d1
+	pointer = line_obj.at(0);
+	dimension1 = atoi(pointer);
+	//== d2
+	pointer = line_obj.at(1);
+	dimension2 = atoi(pointer);
 
-	beta_cis = np.load("./data_simu_init/beta_cis.npy")
-	beta_cellfactor1 = np.load("./data_simu_init/beta_cellfactor1.npy")
-	beta_cellfactor2 = np.load("./data_simu_init/beta_cellfactor2.npy")
-	beta_batch = np.load("./data_simu_init/beta_batch.npy")
-	##==== fill dimension
-	I = len(X[0])
-	J = len(Y[0][0])
-	K = len(Y)
-	N = len(X)
-	D = len(beta_cellfactor1)
-	B = len(Z[0])
+	line_obj.release();
 
 
-	# make incomplete tensor numpy array at all levels, in order to supprt numpy array computing
-	der_cis = []
-	for k in range(K):
-		der_cis.append([])
-		for j in range(J):
-			temp = np.zeros(beta_cis[k][j].shape)
-			der_cis[k].append(temp)
-		der_cis[k] = np.array(der_cis[k])
-	der_cis = np.array(der_cis)
+	//==== then, load data into temporary container
+	vector<vector<vector<float>>> container_temp;
 
-	der_cellfactor1 = np.zeros(beta_cellfactor1.shape)
-	der_cellfactor2 = np.zeros(beta_cellfactor2.shape)
-	der_batch = np.zeros(beta_batch.shape)
-
-	##==== append intercept to X, and Z (for convenience of cell factor pathway, and batch pathway)
-	## X
-	array_ones = (np.array([np.ones(N)])).T
-	X = np.concatenate((X, array_ones), axis=1)									# N x (I+1)
-	## Z
-	array_ones = (np.array([np.ones(N)])).T
-	Z = np.concatenate((Z, array_ones), axis=1)									# N x (B+1)
-"""
-
-
-
-
-
-
-	// global:
-	//	X, Y, markerset
-	//	Y1, U1, Beta, V1, T1, Y2, U2, V2, T2
-	//	K, I, J, S, D1, D2
-	//	alpha, N_element
-	cout << "loading the simu data..." << endl;
-
-
-
-	// NOTE: use fake data (to test) or not?
-	int indicator_real = 1;
-	if(indicator_real)
+	for(int i=0; i<dimension1; i++)
 	{
-		cout << "--> loading the real simu data..." << endl;
+		vector<vector<float>> vec;
+		container_temp.push_back(vec);
 
-		//==========================================
-		//==== load parameters, init
-		char filename[100];
-
-
-
-
-		//==== matrix
-		//== U1
-		sprintf(filename, "../data_simu_init/U1.txt");
-		load_matrix(U1, filename);
-		//== V1
-		sprintf(filename, "../data_simu_init/V1.txt");
-		load_matrix(V1, filename);
-		//== T1
-		sprintf(filename, "../data_simu_init/T1.txt");
-		load_matrix(T1, filename);
-		//== U2
-		sprintf(filename, "../data_simu_init/U2.txt");
-		load_matrix(U2, filename);
-		//== V2
-		sprintf(filename, "../data_simu_init/V2.txt");
-		load_matrix(V2, filename);
-		//== T2
-		sprintf(filename, "../data_simu_init/T2.txt");
-		load_matrix(T2, filename);
-		//== Beta
-		sprintf(filename, "../data_simu_init/Beta.txt");
-		load_matrix(Beta, filename);
-
-		//==== tensor
-		//== Y1
-		sprintf(filename, "../data_simu_init/Y1.txt");
-		load_tensor(Y1, filename);
-		//== Y2
-		sprintf(filename, "../data_simu_init/Y2.txt");
-		load_tensor(Y2, filename);
-
-
-
-
-		//==========================================
-		//==== fill in the dimensions
-		K = Y1.get_dimension1();
-		I = Y1.get_dimension2();
-		J = Y1.get_dimension3();
-		//
-		S = Beta.get_dimension2();
-		D1 = Beta.get_dimension1();
-		//
-		D2 = U2.get_dimension2();
-
-
-		//==========================================
-		//==== load data
-		//== X
-		sprintf(filename, "../data_simu/X.txt");
-		load_matrix(X, filename);
-
-
-
-		//== Y
-		int indicator_comp = 0;
-		if(indicator_comp)				// load complete Y
+		for(int j=0; j<dimension2; j++)
 		{
-			cout << "loading complete Y tensor..." << endl;
-			sprintf(filename, "../data_simu/Y.txt");
-			load_tensor(Y, filename);
+			int end = file.readline(line, input_length);
 
+			line_class line_obj(line);
+			line_obj.split_tab();
 
-			//==========================================
-			//==== the others
-			int temp = 1;
-			markerset.init(K, I, J, temp);
-			N_element = int(markerset.sum());
-			alpha = 1.0;				// NOTE: need to manually set this
-
-		}
-		else 							// load incomplete Y
-		{
-			cout << "loading incomplete Y tensor..." << endl;
-			// Y (dataset), markerset
-			Y.init(K, I, J);
-			/*
-			float temp = 0;
-			markerset.init(K, I, J, temp);
-			*/
-			markerset.init(K, I, J);							// NOTE: this already init all elements as 0
-			for(int k=0; k<K; k++)
+			vector<float> vec;
+			for(unsigned i=0; i<line_obj.size(); i++)
 			{
-				char filename[100];
-				filename[0] = '\0';
-				strcat(filename, "../data_simu_init/Tensor_tissue_");
-				char tissue[10];
-				sprintf(tissue, "%d", k);
-				strcat(filename, tissue);
-				strcat(filename, ".txt");
-
-				char type[10] = "r";
-				filehandle file(filename, type);
-
-				long input_length = 1000000000;
-				char * line = (char *)malloc( sizeof(char) * input_length );
-				while(1)
-				{
-					int end = file.readline(line, input_length);
-					if(end)
-						break;
-
-					line_class line_obj(line);
-					line_obj.split_tab();
-
-					int index = atoi(line_obj.at(0));
-					vector<float> vec;
-					for(unsigned i=1; i<line_obj.size(); i++)		// NOTE: here we start from pos#1
-					{
-						char * pointer = line_obj.at(i);
-						//float value = stof(pointer);				// NOTE: there are double-range numbers
-						float value = stod(pointer);
-						vec.push_back(value);
-					}
-					line_obj.release();
-					for(int i=0; i<vec.size(); i++)
-					{
-						Y.set_element(k, index, i, vec.at(i));
-						markerset.set_element(k, index, i, 1);
-					}
-
-				}
-				free(line);
-				file.close();
+				char * pointer = line_obj.at(i);
+				//float value = stof(pointer);				// there are double-range numbers
+				float value = stod(pointer);
+				vec.push_back(value);
 			}
-
-			cout << "Y and markerset shape:" << endl;
-			cout << "(" << Y.get_dimension1() << ", " << Y.get_dimension2() << ", " << Y.get_dimension3() << ")" << endl;
-			cout << "(" << markerset.get_dimension1() << ", " << markerset.get_dimension2() << ", " << markerset.get_dimension3() << ")" << endl;
-
-
-			//==========================================
-			//==== init others
-			alpha = 1.0;		// just random
-			N_element = int(markerset.sum());
+			line_obj.release();
+			(container_temp.at(i)).push_back(vec);
 		}
-
 	}
-	else
-	{
-		cout << "--> loading the fake simu data..." << endl;
 
-		K = 33;
-		I = 450;
-		J = 21150;
-		S = 824113;
-		D1 = 400;
-		D2 = 400;
-
-		//==== matrix
-		U1.init(I, D1, 1.1);
-		V1.init(J, D1, 1.1);
-		T1.init(K, D1, 1.1);
-		U2.init(I, D2, 1.1);
-		V2.init(J, D2, 1.1);
-		T2.init(K, D2, 1.1);
-		Beta.init(D1, S, 1.1);
-		Y1.init(K, I, J, 1.1);
-		Y2.init(K, I, J, 1.1);
-		X.init(I, S, 1.1);
-		Y.init(K, I, J, 1.1);
+	free(line);
+	file.close();
 
 
-
-		//==========================================
-		//==== the others
-		int temp = 1;
-		markerset.init(K, I, J, temp);
-		N_element = int(markerset.sum());
-		alpha = 1.0;				// NOTE: need to manually set this
-	}
+	//==== load data into Tensor from temporary container
+	tensor.init(container_temp);
 
 
 	return;
@@ -394,7 +255,161 @@ void data_load_simu()
 
 
 
-/*
+
+
+
+
+//// loading the simulated data (I'll probably work on a full tensor, which has the upper bound for the computing)
+void data_load_simu()
+{
+	cout << "loading the simu data..." << endl;
+
+
+
+	//==========================================
+	//==== load parameters, init
+	char filename[100];
+
+
+	//==== matrix
+	//== beta_batch
+	sprintf(filename, "../data_simu_init/beta_batch.txt");
+	load_matrix(beta_batch, filename);
+	//== beta_cellfactor1
+	sprintf(filename, "../data_simu_init/beta_cellfactor1.txt");
+	load_matrix(beta_cellfactor1, filename);
+
+
+	//==== tensor
+	//== beta_cellfactor2
+	sprintf(filename, "../data_simu_init/beta_cellfactor2.txt");
+	load_tensor(beta_cellfactor2, filename);
+
+
+	//==== incomp tensor: beta_cis
+	//== beta_cis
+	sprintf(filename, "../data_simu_init/beta_cis.txt");
+	load_beta_cis(beta_cis, filename);
+
+
+	//====
+	//== mapping_cis
+	sprintf(filename, "../data_simu_data/mapping_cis.txt");
+	load_mapping_cis(mapping_cis, filename);
+
+
+
+
+
+	//==========================================
+	//==== load data
+	//== X
+	sprintf(filename, "../data_simu_data/X.txt");
+	load_matrix(X, filename);
+	//== Z
+	sprintf(filename, "../data_simu_data/Z.txt");
+	load_matrix(Z, filename);
+	//==========================================
+	//==== append intercept to X, and Z (for convenience of cell factor pathway, and batch pathway)
+	X.append_column_one();									// N x (I+1)
+	Z.append_column_one();									// N x (B+1)
+
+
+
+
+
+	//==========================================
+	//==== fill in the dimensions
+	I = beta_cellfactor1.get_dimension2() - 1;
+	J = beta_cellfactor2.get_dimension2();
+	K = beta_cellfactor2.get_dimension1();
+	N = X.get_dimension1();
+	D = beta_cellfactor1.get_dimension1();
+	B = beta_batch.get_dimension2() - 1;
+
+
+
+
+
+	//== Y: Tensor_expr
+	int indicator_comp = 1;
+	if(indicator_comp)				// load complete Y
+	{
+		cout << "loading complete Y tensor..." << endl;
+		sprintf(filename, "../data_simu_data/Y.txt");
+		Tensor tensor;
+		load_tensor(tensor, filename);
+		//
+		int dimension1 = tensor.get_dimension1();
+		int dimension2 = tensor.get_dimension2();
+		int dimension3 = tensor.get_dimension3();
+		float * pointer = tensor.get_tensor();
+		Y.init_full(dimension1, dimension2, dimension3, pointer);
+	}
+	else 							// load incomplete Y
+	{
+		int i = 1;
+		// TODO: to adapt the following to the Tensor_expr:
+		/*
+		cout << "loading incomplete Y tensor..." << endl;
+		Y.init(K, I, J);
+		for(int k=0; k<K; k++)
+		{
+			char filename[100];
+			filename[0] = '\0';
+			strcat(filename, "../data_simu_init/Tensor_tissue_");
+			char tissue[10];
+			sprintf(tissue, "%d", k);
+			strcat(filename, tissue);
+			strcat(filename, ".txt");
+
+			char type[10] = "r";
+			filehandle file(filename, type);
+
+			long input_length = 1000000000;
+			char * line = (char *)malloc( sizeof(char) * input_length );
+			while(1)
+			{
+				int end = file.readline(line, input_length);
+				if(end)
+					break;
+
+				line_class line_obj(line);
+				line_obj.split_tab();
+
+				int index = atoi(line_obj.at(0));
+				vector<float> vec;
+				for(unsigned i=1; i<line_obj.size(); i++)		// NOTE: here we start from pos#1
+				{
+					char * pointer = line_obj.at(i);
+					//float value = stof(pointer);				// NOTE: there are double-range numbers
+					float value = stod(pointer);
+					vec.push_back(value);
+				}
+				line_obj.release();
+				for(int i=0; i<vec.size(); i++)
+				{
+					Y.set_element(k, index, i, vec.at(i));
+				}
+
+			}
+			free(line);
+			file.close();
+		}
+		*/
+	}
+
+
+
+	return;
+}
+
+
+
+
+
+
+
 //// loading the real data that have been preprocessed
 void data_load_real()
 {
@@ -406,7 +421,7 @@ void data_load_real()
 
 	return;
 }
-*/
+
 
 
 
@@ -426,6 +441,8 @@ void model_save()
 {
 	cout << "now saving the learned models... (beta_cis, beta_cellfactor1, beta_cellfactor2, beta_batch)" << endl;
 
+
+	/*
 	char filename[100];
 
 	//==== matrix
@@ -441,6 +458,8 @@ void model_save()
 	//==== irregular tensor
 	sprintf(filename, "../result/beta_cis.txt");
 	beta_cis.save(filename);
+	*/
+
 
 	return;
 }

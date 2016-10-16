@@ -22,7 +22,7 @@ void mem_gpu_init();
 void mem_gpu_release();
 
 void mem_gpu_settissue(int);
-void mem_gpu_destroytissue();
+void mem_gpu_destroytissue(int);
 
 
 

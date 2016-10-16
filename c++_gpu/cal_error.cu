@@ -193,7 +193,7 @@ float cal_error(int k)
 		//
 		kernel_cal_sosod_sumsub<32><<< grid, threads >>>(sub_length, d_sumY_temp, d_sum);
 		//
-		checkCudaErrors(cudaMemcpy(h_sum, d_sum, 1*sizeof(float), cudaMemcpyDeviceToHost));
+		checkCudaErrors(cudaMemcpy(&h_sum, d_sum, 1*sizeof(float), cudaMemcpyDeviceToHost));
 		error = h_sum;
 
 		//==##== collector ==##==

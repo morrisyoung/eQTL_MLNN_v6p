@@ -27,7 +27,6 @@ float cal_error(int);
 
 
 
-
 #endif
 
 // end of cal_error.h
