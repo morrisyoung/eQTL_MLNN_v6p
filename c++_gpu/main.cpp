@@ -20,7 +20,7 @@ using namespace std;
 
 //==== learning setting
 // TODO: to determine some parameters
-int num_iter_out = 1;
+int num_iter_out = 100;
 int num_iter_in = 100;
 int size_batch = 20;
 float rate_learn = 0.0000001;

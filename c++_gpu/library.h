@@ -32,7 +32,6 @@ class Map_list
 
 public:
 
-
 	// used for loading data, since we might use other containers to load data first of all
 	void init(vector<vector<int>> & container)
 	{
@@ -48,8 +47,6 @@ public:
 
 		return;
 	}
-
-
 
 	int get_start_at(int pos)
 	{
@@ -72,6 +69,7 @@ public:
 	}
 
 };
+
 
 
 
@@ -142,7 +140,6 @@ public:
 	}
 
 
-
 	void append_column_one()
 	{
 		// the content update
@@ -163,7 +160,6 @@ public:
 	}
 
 
-
 	int get_dimension1()
 	{
 		return dimension1;
@@ -179,12 +175,48 @@ public:
 		return matrix;
 	}
 
+
+	void print_shape()
+	{
+		cout << "this matrix has shape: " << dimension1 << ", " << dimension2 << endl;
+		return;
+	}
+
+
+	// given a filename, try to save this matrix into a file
+	void save(char * filename)
+	{
+		FILE * file_out = fopen(filename, "w+");
+		if(file_out == NULL)
+		{
+		    fputs("File error\n", stderr); exit(1);
+		}
+
+		for(int i=0; i<dimension1; i++)
+		{
+			int start = i * dimension2;
+			for(int j=0; j<dimension2; j++)
+			{
+				int index = start + j;
+				float value = matrix[index];
+				char buf[1024];
+				sprintf(buf, "%f\t", value);
+				fwrite(buf, sizeof(char), strlen(buf), file_out);
+			}
+			fwrite("\n", sizeof(char), 1, file_out);
+		}
+		fclose(file_out);
+		return;
+	}
+
+
 	// delete object
 	void release()
 	{
 		free(matrix);
 		return;
 	}
+
 
 
 	/*
@@ -220,14 +252,6 @@ public:
 
 		return;
 	}
-
-
-	void print_shape()
-	{
-		cout << "this matrix has shape: " << dimension1 << ", " << dimension2 << endl;
-		return;
-	}
-
 
 	float get_element(int ind1, int ind2)
 	{
@@ -303,32 +327,6 @@ public:
 		}
 		return;
 	}
-
-	// given a filename, try to save this matrix into a file
-	void save(char * filename)
-	{
-		FILE * file_out = fopen(filename, "w+");
-		if(file_out == NULL)
-		{
-		    fputs("File error\n", stderr); exit(1);
-		}
-
-		for(int i=0; i<dimension1; i++)
-		{
-			int start = i * dimension2;
-			for(int j=0; j<dimension2; j++)
-			{
-				int index = start + j;
-				float value = matrix[index];
-				char buf[1024];
-				sprintf(buf, "%f\t", value);
-				fwrite(buf, sizeof(char), strlen(buf), file_out);
-			}
-			fwrite("\n", sizeof(char), 1, file_out);
-		}
-		fclose(file_out);
-		return;
-	}
 	*/
 
 };
@@ -401,6 +399,51 @@ public:
 		return pointer;
 	}
 
+	void print_shape()
+	{
+		cout << "this tensor has shape: " << dimension1 << ", " << dimension2 << ", " << dimension3 << endl;
+		return;
+	}
+
+
+	// given a filename, try to save this tensor into a file
+	void save(char * filename)
+	{
+		FILE * file_out = fopen(filename, "w+");
+		if(file_out == NULL)
+		{
+		    fputs("File error\n", stderr); exit(1);
+		}
+
+		char buf[1024];
+		sprintf(buf, "%d\t", dimension1);
+		fwrite(buf, sizeof(char), strlen(buf), file_out);
+		sprintf(buf, "%d\t", dimension2);
+		fwrite(buf, sizeof(char), strlen(buf), file_out);
+		sprintf(buf, "%d\t", dimension3);
+		fwrite(buf, sizeof(char), strlen(buf), file_out);
+		fwrite("\n", sizeof(char), 1, file_out);
+
+		for(long int k=0; k<dimension1; k++)
+		{
+			for(long int i=0; i<dimension2; i++)
+			{
+				long int start = k * dimension2 * dimension3 + i * dimension3;
+				for(long int j=0; j<dimension3; j++)
+				{
+					long int index = start + j;
+					float value = tensor[index];
+					char buf[1024];
+					sprintf(buf, "%f\t", value);
+					fwrite(buf, sizeof(char), strlen(buf), file_out);
+				}
+				fwrite("\n", sizeof(char), 1, file_out);
+			}
+		}
+		fclose(file_out);
+		return;
+	}
+
 
 	// delete object
 	void release()
@@ -452,14 +495,6 @@ public:
 		return;
 	}
 
-
-	void print_shape()
-	{
-		cout << "this tensor has shape: " << dimension1 << ", " << dimension2 << ", " << dimension3 << endl;
-		return;
-	}
-
-
 	float * get_tensor_at(long int i)
 	{
 		long int shift = i * dimension2 * dimension3;
@@ -510,45 +545,6 @@ public:
 		}
 		return;
 	}
-
-	// given a filename, try to save this tensor into a file
-	void save(char * filename)
-	{
-		FILE * file_out = fopen(filename, "w+");
-		if(file_out == NULL)
-		{
-		    fputs("File error\n", stderr); exit(1);
-		}
-
-		char buf[1024];
-		sprintf(buf, "%d\t", dimension1);
-		fwrite(buf, sizeof(char), strlen(buf), file_out);
-		sprintf(buf, "%d\t", dimension2);
-		fwrite(buf, sizeof(char), strlen(buf), file_out);
-		sprintf(buf, "%d\t", dimension3);
-		fwrite(buf, sizeof(char), strlen(buf), file_out);
-		fwrite("\n", sizeof(char), 1, file_out);
-
-		for(long int k=0; k<dimension1; k++)
-		{
-			for(long int i=0; i<dimension2; i++)
-			{
-				long int start = k * dimension2 * dimension3 + i * dimension3;
-				for(long int j=0; j<dimension3; j++)
-				{
-					long int index = start + j;
-					float value = tensor[index];
-					char buf[1024];
-					sprintf(buf, "%f\t", value);
-					fwrite(buf, sizeof(char), strlen(buf), file_out);
-				}
-				fwrite("\n", sizeof(char), 1, file_out);
-			}
-		}
-		fclose(file_out);
-		return;
-	}
-
 	*/
 
 
@@ -609,7 +605,6 @@ public:
 	}
 
 
-
 	int get_dimension2_at(int pos)
 	{
 		return list_dimension2.at(pos);
@@ -619,7 +614,6 @@ public:
 	{
 		return dimension3;
 	}
-
 
 	float * get_matrix_at(int pos)
 	{
@@ -758,6 +752,61 @@ public:
 	int * get_list_beta_cis_geneindex()
 	{
 		return list_beta_cis_geneindex;
+	}
+
+
+
+
+
+
+	vector<int> list_dimension3;						// number of dimension3 for different dimension2 (gene)
+
+
+
+
+
+
+
+	// given a filename, try to save this tensor into a file
+	void save(char * filename)
+	{
+		FILE * file_out = fopen(filename, "w+");
+		if(file_out == NULL)
+		{
+		    fputs("File error\n", stderr); exit(1);
+		}
+
+		char buf[1024];
+		sprintf(buf, "%d\t", dimension1);
+		fwrite(buf, sizeof(char), strlen(buf), file_out);
+		sprintf(buf, "%d\t", dimension2);
+		fwrite(buf, sizeof(char), strlen(buf), file_out);
+		fwrite("\n", sizeof(char), 1, file_out);
+
+		for(long int k=0; k<dimension1; k++)
+		{
+			float * matrix = list_incomp_matrix.at(k);
+			int pos = 0;
+
+			for(long int i=0; i<dimension2; i++)
+			{
+				int dimension3 = list_dimension3.at(i);
+				for(int j=0; j<dimension3; j++)
+				{
+					//
+					float value = matrix[pos];
+					char buf[1024];
+					sprintf(buf, "%f\t", value);
+					fwrite(buf, sizeof(char), strlen(buf), file_out);
+					//
+					pos += 1;
+				}
+				fwrite("\n", sizeof(char), 1, file_out);
+			}
+
+		}
+		fclose(file_out);
+		return;
 	}
 
 

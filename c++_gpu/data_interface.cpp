@@ -9,7 +9,9 @@
 
 
 
+
 using namespace std;
+
 
 
 
@@ -345,6 +347,8 @@ void data_load_simu()
 		int dimension3 = tensor.get_dimension3();
 		float * pointer = tensor.get_tensor();
 		Y.init_full(dimension1, dimension2, dimension3, pointer);
+		//====//====//====//====//====//====//====
+		tensor.release();
 	}
 	else 							// load incomplete Y
 	{
@@ -441,8 +445,6 @@ void model_save()
 {
 	cout << "now saving the learned models... (beta_cis, beta_cellfactor1, beta_cellfactor2, beta_batch)" << endl;
 
-
-	/*
 	char filename[100];
 
 	//==== matrix
@@ -455,11 +457,9 @@ void model_save()
 	sprintf(filename, "../result/beta_cellfactor2.txt");
 	beta_cellfactor2.save(filename);
 
-	//==== irregular tensor
+	//==== irregular tensor: beta_cis
 	sprintf(filename, "../result/beta_cis.txt");
 	beta_cis.save(filename);
-	*/
-
 
 	return;
 }

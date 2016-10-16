@@ -21,7 +21,7 @@ import timeit
 
 ##==== learning setting
 ## TODO: to determine some parameters
-num_iter_out = 1
+num_iter_out = 100
 num_iter_in = 100
 size_batch = 20
 #rate_learn = 0.0001					# for brain and chr22
