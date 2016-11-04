@@ -226,8 +226,8 @@ SRCS=	main.cpp data_interface.cpp
 OBJS=	main.o data_interface.o
 #SRCS_GPU=	mem_gpu_setup.cu fbward_gd.cu cal_error.cu
 #BJS_GPU=	mem_gpu_setup.o fbward_gd.o cal_error.o
-SRCS_GPU=	fbward_gd.cu cal_error.cu mem_gpu_setup.cu
-OBJS_GPU=	fbward_gd.o cal_error.o mem_gpu_setup.o
+SRCS_GPU=	fbward_gd.cu cal_error.cu cal_error_test.cu mem_gpu_setup.cu
+OBJS_GPU=	fbward_gd.o cal_error.o cal_error_test.o mem_gpu_setup.o
 EXECUTABLE=	main
 
 

@@ -67,9 +67,10 @@ if __name__=="__main__":
 
 
 
+
 	"""
-	## TODO: manually specify something here
-	num_iter_out = 7
+	## TODO: manually specify the outside iter here
+	num_iter_out = 100
 	num_iter_in = 100
 	num_tissue = 13
 	count = 0

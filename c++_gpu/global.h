@@ -109,6 +109,33 @@ extern float * d_cellfactor_sub_new;
 
 
 
+//@@@@@@@@########@@@@@@@@
+// we have the testing set
+extern int N_test;
+
+extern Matrix X_test;
+extern Tensor_expr Y_test;
+extern Matrix Z_test;
+
+extern vector<float> list_error_test;
+
+extern float * d_X_subtest;
+extern float * d_Z_subtest;
+extern float * d_Y_subtest;
+extern float * d_Y_subtest_exp;
+extern float * d_cellfactor_subtest;
+extern float * d_cellfactor_subtest_new;
+
+
+
+
+
+
+//==== other indicators
+extern int indicator_crossv;
+
+
+
 
 
 #endif

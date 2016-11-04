@@ -45,7 +45,7 @@ if __name__ == "__main__":
 	plt.legend(handles=[python, gpu], loc=2)
 	#plt.legend(handles=[gpu], loc=2)
 	plt.xlabel("% of real data scale (for genotype and gene)")
-	plt.ylabel("milliseconds per batch (SGD, 20 samples)")
+	plt.ylabel("milliseconds per update (SGD, 20 samples)")
 	plt.grid()
 
 

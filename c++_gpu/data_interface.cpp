@@ -417,10 +417,326 @@ void data_load_simu()
 //// loading the real data that have been preprocessed
 void data_load_real()
 {
+	cout << "loading the real data..." << endl;
+
+
+	//==========================================
+	//==== load parameters, init
+	char filename[100];
+
+
+	//==== matrix
+	//== beta_batch
+	sprintf(filename, "../data_real_init/beta_batch.txt");
+	load_matrix(beta_batch, filename);
+	//== beta_cellfactor1
+	sprintf(filename, "../data_real_init/beta_cellfactor1.txt");
+	load_matrix(beta_cellfactor1, filename);
+
+
+	//==== tensor
+	//== beta_cellfactor2
+	sprintf(filename, "../data_real_init/beta_cellfactor2.txt");
+	load_tensor(beta_cellfactor2, filename);
+
+
+	//==== incomp tensor: beta_cis
+	//== beta_cis
+	sprintf(filename, "../data_real_init/beta_cis.txt");
+	load_beta_cis(beta_cis, filename);
+
+
+	//====
+	//== mapping_cis
+	sprintf(filename, "../data_real_data/mapping_cis.txt");
+	load_mapping_cis(mapping_cis, filename);
 
 
 
 
+
+
+	if(indicator_crossv)
+	{
+		//==========================================
+		//==== load data (training)
+		//== X
+		sprintf(filename, "../data_real_data_train/X.txt");
+		load_matrix(X, filename);
+		//== Z
+		sprintf(filename, "../data_real_data_train/Z.txt");
+		load_matrix(Z, filename);
+		//==========================================
+		//==== append intercept to X, and Z (for convenience of cell factor pathway, and batch pathway)
+		X.append_column_one();									// N x (I+1)
+		Z.append_column_one();									// N x (B+1)
+
+
+		//==========================================
+		//==== fill in the dimensions
+		I = beta_cellfactor1.get_dimension2() - 1;
+		J = beta_cellfactor2.get_dimension2();
+		K = beta_cellfactor2.get_dimension1();
+		N = X.get_dimension1();
+		D = beta_cellfactor1.get_dimension1();
+		B = beta_batch.get_dimension2() - 1;
+
+
+		//== Y: Tensor_expr
+		int indicator_comp = 0;			// always incomplete for real data
+		if(indicator_comp)				// load complete Y
+		{
+			int i=1;
+		}
+		else 							// load incomplete Y
+		{
+			cout << "loading incomplete Y tensor..." << endl;
+
+			//@@
+			vector<vector<vector<float>>> vec_tensor_expr;
+			vector<vector<int>> vec_indiv_pos_list;
+
+			for(int k=0; k<K; k++)
+			{
+				//@@
+				vector<vector<float>> vec0;
+				vec_tensor_expr.push_back(vec0);
+				vector<int> vec1;
+				vec_indiv_pos_list.push_back(vec1);
+
+				char filename[100];
+				filename[0] = '\0';
+				strcat(filename, "../data_real_data_train/Tensor_tissue_");
+				char tissue[10];
+				sprintf(tissue, "%d", k);
+				strcat(filename, tissue);
+				strcat(filename, ".txt");
+
+				char type[10] = "r";
+				filehandle file(filename, type);
+
+				long input_length = 1000000000;
+				char * line = (char *)malloc( sizeof(char) * input_length );
+				while(1)
+				{
+					int end = file.readline(line, input_length);
+					if(end)
+						break;
+
+					line_class line_obj(line);
+					line_obj.split_tab();
+
+					int index = atoi(line_obj.at(0));
+					//@@
+					(vec_indiv_pos_list.at(k)).push_back(index);
+
+					vector<float> vec;
+					for(unsigned i=1; i<line_obj.size(); i++)		// NOTE: here we start from pos#1
+					{
+						char * pointer = line_obj.at(i);
+						//float value = stof(pointer);				// NOTE: there are double-range numbers
+						float value = stod(pointer);
+						vec.push_back(value);
+					}
+					line_obj.release();
+
+					//@@
+					(vec_tensor_expr.at(k)).push_back(vec);
+				}
+				free(line);
+				file.close();
+			}
+			//
+			Y.init_incomp(vec_tensor_expr, vec_indiv_pos_list);
+		}
+
+
+		//==========================================
+		//==========================================
+		//==========================================
+		//==========================================
+		//==== load data (testing)
+		//== X_test
+		sprintf(filename, "../data_real_data_test/X.txt");
+		load_matrix(X_test, filename);
+		//== Z_test
+		sprintf(filename, "../data_real_data_test/Z.txt");
+		load_matrix(Z_test, filename);
+		//==========================================
+		//==== append intercept to X_test, and Z_test (for convenience of cell factor pathway, and batch pathway)
+		X_test.append_column_one();									// N_test x (I+1)
+		Z_test.append_column_one();									// N_test x (B+1)
+
+
+		//==========================================
+		N_test = X_test.get_dimension1();
+
+
+		//== Y_test: Tensor_expr
+		//int indicator_comp = 0;		// always incomplete for real data
+		indicator_comp = 0;				// always incomplete for real data
+		if(indicator_comp)				// load complete Y_test
+		{
+			int i=1;
+		}
+		else 							// load incomplete Y
+		{
+			cout << "loading incomplete Y_test tensor..." << endl;
+
+			//@@
+			vector<vector<vector<float>>> vec_tensor_expr;
+			vector<vector<int>> vec_indiv_pos_list;
+
+			for(int k=0; k<K; k++)
+			{
+				//@@
+				vector<vector<float>> vec0;
+				vec_tensor_expr.push_back(vec0);
+				vector<int> vec1;
+				vec_indiv_pos_list.push_back(vec1);
+
+				char filename[100];
+				filename[0] = '\0';
+				strcat(filename, "../data_real_data_test/Tensor_tissue_");
+				char tissue[10];
+				sprintf(tissue, "%d", k);
+				strcat(filename, tissue);
+				strcat(filename, ".txt");
+
+				char type[10] = "r";
+				filehandle file(filename, type);
+
+				long input_length = 1000000000;
+				char * line = (char *)malloc( sizeof(char) * input_length );
+				while(1)
+				{
+					int end = file.readline(line, input_length);
+					if(end)
+						break;
+
+					line_class line_obj(line);
+					line_obj.split_tab();
+
+					int index = atoi(line_obj.at(0));
+					//@@
+					(vec_indiv_pos_list.at(k)).push_back(index);
+
+					vector<float> vec;
+					for(unsigned i=1; i<line_obj.size(); i++)		// NOTE: here we start from pos#1
+					{
+						char * pointer = line_obj.at(i);
+						//float value = stof(pointer);				// NOTE: there are double-range numbers
+						float value = stod(pointer);
+						vec.push_back(value);
+					}
+					line_obj.release();
+
+					//@@
+					(vec_tensor_expr.at(k)).push_back(vec);
+				}
+				free(line);
+				file.close();
+			}
+			//
+			Y_test.init_incomp(vec_tensor_expr, vec_indiv_pos_list);
+		}
+		//
+	}
+	else
+	{
+		//==========================================
+		//==== load data
+		//== X
+		sprintf(filename, "../data_real_data/X.txt");
+		load_matrix(X, filename);
+		//== Z
+		sprintf(filename, "../data_real_data/Z.txt");
+		load_matrix(Z, filename);
+		//==========================================
+		//==== append intercept to X, and Z (for convenience of cell factor pathway, and batch pathway)
+		X.append_column_one();									// N x (I+1)
+		Z.append_column_one();									// N x (B+1)
+
+
+		//==========================================
+		//==== fill in the dimensions
+		I = beta_cellfactor1.get_dimension2() - 1;
+		J = beta_cellfactor2.get_dimension2();
+		K = beta_cellfactor2.get_dimension1();
+		N = X.get_dimension1();
+		D = beta_cellfactor1.get_dimension1();
+		B = beta_batch.get_dimension2() - 1;
+
+
+		//== Y: Tensor_expr
+		int indicator_comp = 0;			// always incomplete for real data
+		if(indicator_comp)				// load complete Y
+		{
+			int i=1;
+		}
+		else 							// load incomplete Y
+		{
+			cout << "loading incomplete Y tensor..." << endl;
+
+			//@@
+			vector<vector<vector<float>>> vec_tensor_expr;
+			vector<vector<int>> vec_indiv_pos_list;
+
+			for(int k=0; k<K; k++)
+			{
+				//@@
+				vector<vector<float>> vec0;
+				vec_tensor_expr.push_back(vec0);
+				vector<int> vec1;
+				vec_indiv_pos_list.push_back(vec1);
+
+				char filename[100];
+				filename[0] = '\0';
+				strcat(filename, "../data_real_data/Tensor_tissue_");
+				char tissue[10];
+				sprintf(tissue, "%d", k);
+				strcat(filename, tissue);
+				strcat(filename, ".txt");
+
+				char type[10] = "r";
+				filehandle file(filename, type);
+
+				long input_length = 1000000000;
+				char * line = (char *)malloc( sizeof(char) * input_length );
+				while(1)
+				{
+					int end = file.readline(line, input_length);
+					if(end)
+						break;
+
+					line_class line_obj(line);
+					line_obj.split_tab();
+
+					int index = atoi(line_obj.at(0));
+					//@@
+					(vec_indiv_pos_list.at(k)).push_back(index);
+
+					vector<float> vec;
+					for(unsigned i=1; i<line_obj.size(); i++)		// NOTE: here we start from pos#1
+					{
+						char * pointer = line_obj.at(i);
+						//float value = stof(pointer);				// NOTE: there are double-range numbers
+						float value = stod(pointer);
+						vec.push_back(value);
+					}
+					line_obj.release();
+
+					//@@
+					(vec_tensor_expr.at(k)).push_back(vec);
+				}
+				free(line);
+				file.close();
+			}
+			//
+			Y.init_incomp(vec_tensor_expr, vec_indiv_pos_list);
+		}
+		//
+	}
 
 
 	return;
@@ -467,10 +783,18 @@ void model_save()
 
 
 
-// init error list container
+// init error list container, for both training and testing sets
 void error_init()
 {
-	list_error.clear();
+	if(indicator_crossv)
+	{
+		list_error.clear();
+		list_error_test.clear();
+	}
+	else
+	{
+		list_error.clear();
+	}
 
 	return;
 }
@@ -504,8 +828,19 @@ void save_vector(vector<float> & vec, char * filename)
 // where: "../result/"
 void error_save()
 {
-	char filename[] = "../result/error_total.txt";
-	save_vector(list_error, filename);
+	if(indicator_crossv)
+	{
+		char filename[] = "../result/error_total.txt";
+		save_vector(list_error, filename);
+
+		char filename1[] = "../result/error_total_test.txt";
+		save_vector(list_error_test, filename1);
+	}
+	else
+	{
+		char filename[] = "../result/error_total.txt";
+		save_vector(list_error, filename);
+	}
 
 	return;
 }
@@ -549,8 +884,19 @@ void save_vector_online(vector<float> & vec, char * filename)
 // save loglike in an online fashion
 void error_save_online()
 {
-	char filename[] = "../result/error_total_online.txt";
-	save_vector_online(list_error, filename);
+	if(indicator_crossv)
+	{
+		char filename[] = "../result/error_total_online.txt";
+		save_vector_online(list_error, filename);
+
+		char filename1[] = "../result/error_total_online_test.txt";
+		save_vector_online(list_error_test, filename1);
+	}
+	else
+	{
+		char filename[] = "../result/error_total_online.txt";
+		save_vector_online(list_error, filename);
+	}
 
 	return;
 }

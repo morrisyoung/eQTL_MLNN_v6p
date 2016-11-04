@@ -68,3 +68,11 @@ if __name__ == "__main__":
 
 
 
+
+	data1 = np.array([1,2,3])
+	data2 = np.array([2,3,4])
+
+	data1 += data2
+	print data1
+
+

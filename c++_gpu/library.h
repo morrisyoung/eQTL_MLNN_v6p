@@ -565,13 +565,57 @@ class Tensor_expr
 {
 	int dimension1;										// number of tissues
 	//vector<vector<int>> list_list_indiv_pos;			// contains the mappings to pos of individuals
-	//int ** list_list_indiv_pos;							// same as above
+	//int ** list_list_indiv_pos;						// same as above
 	vector<int *> list_list_indiv_pos;					// same as above
-	vector<int> list_dimension2;						// number of genes for different tissues
+	vector<int> list_dimension2;						// number of samples for different tissue
 	int dimension3;										// number of genes
 	vector<float *> list_matrix;						// expression matrix for different tissues
 
 public:
+
+
+	void init_incomp(vector<vector<vector<float>>> vec_tensor_expr, vector<vector<int>> vec_indiv_pos_list)
+	{
+		//int dimension1;										// number of tissues
+		dimension1 = vec_tensor_expr.size();
+		//vector<int *> list_list_indiv_pos;					// same as above
+		//vector<int> list_dimension2;						// number of samples for different tissue
+		for(int i=0; i<dimension1; i++)
+		{
+			int dimension2 = (vec_tensor_expr.at(i)).size();
+			list_dimension2.push_back(dimension2);
+			int * pointer = (int *)calloc( dimension2, sizeof(int) );
+			for(int j = 0; j<dimension2; j++)
+			{
+				int pos = (vec_indiv_pos_list.at(i)).at(j);
+				pointer[j] = pos;
+			}
+			list_list_indiv_pos.push_back(pointer);
+		}
+		//int dimension3;										// number of genes
+		dimension3 = ((vec_tensor_expr.at(0)).at(0)).size();
+		//vector<float *> list_matrix;						// expression matrix for different tissues
+		for(int i=0; i<dimension1; i++)
+		{
+			int dimension2 = list_dimension2.at(i);
+			float * pointer = (float *)calloc( dimension2*dimension3, sizeof(float) );
+
+			int count = 0;
+			for(int count1=0; count1<dimension2; count1++)
+			{
+				for(int count2=0; count2<dimension3; count2++)
+				{
+					float value = ((vec_tensor_expr.at(i)).at(count1)).at(count2);
+					pointer[count] = value;
+					count += 1;
+				}
+			}
+
+			list_matrix.push_back(pointer);
+		}
+
+		return;
+	}
 
 
 	void init_full(int length1, int length2, int length3, float * pointer_tensor)
@@ -643,8 +687,8 @@ public:
 		return;
 	}
 
-
 };
+
 
 
 
@@ -727,13 +771,6 @@ public:
 	}
 
 
-
-	void load()
-	{
-		//
-		return;
-	}
-
 	int * get_list_start()
 	{
 		return list_start;
@@ -753,17 +790,6 @@ public:
 	{
 		return list_beta_cis_geneindex;
 	}
-
-
-
-
-
-
-	vector<int> list_dimension3;						// number of dimension3 for different dimension2 (gene)
-
-
-
-
 
 
 
@@ -831,12 +857,7 @@ public:
 
 
 
-
-
-
-
 #endif
 
 // end of library.h
-
 
