@@ -29,6 +29,7 @@ class Map_list
 	//vector<vector<int>> list_pair;
 	int * list_start;								// list of start pos
 	int * list_end;									// list of end pos
+	int * list_indi_cis;							// indicating whether or not this gene has cis- SNPs
 
 public:
 
@@ -43,6 +44,16 @@ public:
 		{
 			list_start[i] = (container.at(i)).at(0);
 			list_end[i] = (container.at(i)).at(1);
+
+			if (list_end[i] == -1)
+			{
+				list_indi_cis[i] = 0;
+			}
+			else
+			{
+				list_indi_cis[i] = 1;
+			}
+
 		}
 
 		return;
@@ -66,6 +77,22 @@ public:
 	int * get_list_end()
 	{
 		return list_end;
+	}
+
+
+	int * get_list_indi_cis()
+	{
+		return list_indi_cis;
+	}
+
+
+	// delete object
+	void release()
+	{
+		free(list_start);
+		free(list_end);
+		free(list_indi_cis);
+		return;
 	}
 
 };
@@ -790,8 +817,6 @@ public:
 	{
 		return list_beta_cis_geneindex;
 	}
-
-
 
 	// given a filename, try to save this tensor into a file
 	void save(char * filename)

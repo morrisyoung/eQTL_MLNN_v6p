@@ -6,5 +6,5 @@
 #$ -M sy2515@c2b2.columbia.edu -m bes
 
 
-./main 2 100 20 0.0000001
+./main 10 100 20 0.0000001
 

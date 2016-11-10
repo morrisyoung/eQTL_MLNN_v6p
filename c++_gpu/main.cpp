@@ -99,12 +99,13 @@ float * d_Y_batch_exp;
 float * d_error_batch;
 float * d_cellfactor_batch;
 float * d_cellfactor_batch_new;
-
-int * d_list_cis_start;
-int * d_list_cis_end;
-int * d_list_beta_cis_start;
-int * d_list_beta_cis_geneindex;
-float * d_beta_cis_sub;
+// cis- relevant
+int * d_list_cis_start;						// NOTE: cis-
+int * d_list_cis_end;						// NOTE: cis-
+int * d_list_beta_cis_start;				// NOTE: cis-
+int * d_list_beta_cis_geneindex;			// NOTE: cis-
+int * d_list_indi_cis;						// NOTE: cis-
+float * d_beta_cis_sub;						// NOTE: cis-
 
 float * d_beta_batch;
 float * d_beta_batch_reshape;
@@ -200,20 +201,36 @@ int main(int argc, char *argv[])
 				gettimeofday(&time_start, NULL);
 
 
+
+				// DEBUG
+				float error_before = cal_error(k);
+				cout << "[error before] current (tissue) total error (trainging): " << error_before << endl;
+
+
+
 				//========
 				fbward_gd(k);
 				float error = cal_error(k);
-				cout << "current (tissue) total error (trainging):" << error << endl;
+				cout << "current (tissue) total error (trainging): " << error << endl;
 				list_error.push_back(error);
 				//
 				if(indicator_crossv)
 				{
-					float error_test = cal_error_test(k);
-					cout << "current (tissue) total error (testing):" << error_test << endl;
+					//float error_test = cal_error_test(k);
+					// DEBUG
+					float error_test = 1.0;
+
+					cout << "current (tissue) total error (testing): " << error_test << endl;
 					list_error_test.push_back(error_test);
 				}
 				//
 				error_save_online();
+
+
+
+
+
+
 
 
 				//==== timer ends

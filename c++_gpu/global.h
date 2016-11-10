@@ -81,6 +81,7 @@ extern int * d_list_cis_start;
 extern int * d_list_cis_end;
 extern int * d_list_beta_cis_start;
 extern int * d_list_beta_cis_geneindex;
+extern int * d_list_indi_cis;
 extern float * d_beta_cis_sub;
 
 extern float * d_beta_batch;

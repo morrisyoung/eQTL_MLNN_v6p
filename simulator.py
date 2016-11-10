@@ -554,6 +554,7 @@ def simu_gene():
 
 
 
+
 ##================
 ##==== main
 ##================
@@ -561,9 +562,12 @@ if __name__ == "__main__":
 
 
 
+
 	print "now simulating..."
 	##==== timer
 	start_time = timeit.default_timer()
+
+
 
 	##====================================================
 	## simu real data
@@ -591,7 +595,38 @@ if __name__ == "__main__":
 	##==== save data
 	np.save("./data_simu_data/X", X)
 	np.save("./data_simu_data/X_pos", X_pos)
-	np.save("./data_simu_data/Y", Y)
+
+
+
+	##================================================
+	##================================================
+	## NOTE: we can save full tensor or incomp tensor
+	##================================================
+	##================================================
+	#np.save("./data_simu_data/Y", Y)
+
+	## make Y incomplete
+	ratio = 0.5
+	upper = int(N*ratio)
+	repo_temp = {}
+	for k in range(len(Y)):
+		data = []
+
+		list_pos = (np.random.permutation(N))[:upper]
+		list_pos = np.array(list_pos)
+		for pos in list_pos:
+			data.append(Y[k][pos])
+			repo_temp[pos] = 1
+		data = np.array(data)
+		np.save("./data_simu_data/Tensor_tissue_" + str(k), data)
+		np.save("./data_simu_data/Tensor_tissue_" + str(k) + "_pos", list_pos)
+	## DEBUG
+	print "debug coverage of samples on individuals:",
+	print N,
+	print len(repo_temp)
+
+
+
 	np.save("./data_simu_data/Y_pos", Y_pos)
 	np.save("./data_simu_data/mapping_cis", mapping_cis)
 	np.save("./data_simu_data/Z", Z)
@@ -603,6 +638,7 @@ if __name__ == "__main__":
 
 
 	##==== reformat data
+	'''
 	reformat_matrix(X, "./data_simu_data/X.txt")
 	reformat_matrix(Z, "./data_simu_data/Z.txt")
 	reformat_tensor(Y, "./data_simu_data/Y.txt")
@@ -612,6 +648,12 @@ if __name__ == "__main__":
 	reformat_matrix(beta_cellfactor1, "./data_simu_data/beta_cellfactor1.txt")
 	reformat_tensor(beta_cellfactor2, "./data_simu_data/beta_cellfactor2.txt")
 	reformat_matrix(beta_batch, "./data_simu_data/beta_batch.txt")
+	'''
+
+
+
+
+
 
 
 
@@ -638,10 +680,12 @@ if __name__ == "__main__":
 
 
 	##==== reformat data
+	"""
 	reformat_beta_cis(beta_cis, "./data_simu_init/beta_cis.txt")
 	reformat_matrix(beta_cellfactor1, "./data_simu_init/beta_cellfactor1.txt")
 	reformat_tensor(beta_cellfactor2, "./data_simu_init/beta_cellfactor2.txt")
 	reformat_matrix(beta_batch, "./data_simu_init/beta_batch.txt")
+	"""
 
 
 

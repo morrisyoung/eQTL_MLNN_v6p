@@ -18,6 +18,12 @@
 
 ## NOTE: we are working on an incomplete tensor
 
+## NOTE: we consider the real situation that some genes don't have cis- SNPs
+
+## NOTE: we can also init simulated incomp tensor
+
+
+
 
 
 import numpy as np
@@ -100,6 +106,7 @@ def reformat_tensor(tensor, filename):
 	return
 
 
+## NOTE: for non-cis genes, we save a 0 (the init beta for intercept) to format the file
 def reformat_beta_cis(tensor, filename):
 	shape = tensor.shape
 	dimension1 = shape[0]
@@ -136,11 +143,16 @@ if __name__ == "__main__":
 
 
 
+
 	##=====================================================================================================================
 	##==== load data (real)
 	##=====================================================================================================================
+	## TODO: from where load the data
+	data_source = "./data_real_data/"
+	#data_source = "./data_real_data_train/"
+
 	#
-	X = np.load("./data_real_data_train/X.npy")
+	X = np.load(data_source + "X.npy")
 	# Y and Y_pos
 	K = 28										## TODO: specify the number of tissues
 	Y = []
@@ -149,7 +161,7 @@ if __name__ == "__main__":
 		data = []
 		list_pos = []
 
-		file = open("./data_real_data_train/Tensor_tissue_" + str(k) + ".txt", 'r')
+		file = open(data_source + "Tensor_tissue_" + str(k) + ".txt", 'r')
 		while 1:
 			line = (file.readline()).strip()
 			if not line:
@@ -169,9 +181,9 @@ if __name__ == "__main__":
 	Y = np.array(Y)
 	Y_pos = np.array(Y_pos)
 	#
-	mapping_cis = np.load("./data_real_data_train/mapping_cis.npy")
+	mapping_cis = np.load(data_source + "mapping_cis.npy")
 	#
-	Z = np.load("./data_real_data_train/Z.npy")
+	Z = np.load(data_source + "Z.npy")
 
 	##==== fill dimension
 	I = len(X[0])
@@ -220,12 +232,101 @@ if __name__ == "__main__":
 
 
 
+	"""
+	##=====================================================================================================================
+	##==== load data (simu, incomp tensor)
+	##=====================================================================================================================
+	## TODO: from where load the data
+	data_source = "./data_simu_data/"
+
+	#
+	X = np.load(data_source + "X.npy")
+	# Y and Y_pos
+	K = 13										## TODO: specify the number of tissues
+	Y = []
+	Y_pos = []
+	for k in range(K):
+		data = np.load(data_source + "Tensor_tissue_" + str(k) + ".npy")
+		list_pos = np.load(data_source + "Tensor_tissue_" + str(k) + "_pos.npy")
+		Y.append(data)
+		Y_pos.append(list_pos)
+	Y = np.array(Y)
+	Y_pos = np.array(Y_pos)
+	#
+	mapping_cis = np.load(data_source + "mapping_cis.npy")
+	#
+	Z = np.load(data_source + "Z.npy")
+
+	##==== fill dimension
+	I = len(X[0])
+	J = len(Y[0][0])
+	K = len(Y)
+	N = len(X)
+	D = 40										## TODO: manually set this
+	B = len(Z[0])
+	print "shape:"
+	print "I:", I
+	print "J:", J
+	print "K:", K
+	print "N:", N
+	print "D:", D
+	print "B:", B
+
+
+	# make incomplete tensor numpy array at all levels, in order to supprt numpy array computing
+	init_beta_cis = []
+	for k in range(K):
+		init_beta_cis.append([])
+		for j in range(J):
+			#temp = np.zeros(beta_cis[k][j].shape)
+			amount = mapping_cis[j][1] - mapping_cis[j][0] + 1 + 1			## NOTE: the intercept
+			temp = np.zeros(amount)
+			init_beta_cis[k].append(temp)
+		init_beta_cis[k] = np.array(init_beta_cis[k])
+	init_beta_cis = np.array(init_beta_cis)
+
+	#init_beta_cellfactor1 = np.zeros(beta_cellfactor1.shape)
+	init_beta_cellfactor1 = np.zeros((D, I+1))
+	#init_beta_cellfactor2 = np.zeros(beta_cellfactor2.shape)
+	init_beta_cellfactor2 = np.zeros((K, J, D+1))
+	#init_beta_batch = np.zeros(beta_batch.shape)
+	init_beta_batch = np.zeros((J, B+1))
+
+
+	##==== append intercept to X, and Z (for convenience of cell factor pathway, and batch pathway)
+	## X
+	array_ones = (np.array([np.ones(N)])).T
+	X = np.concatenate((X, array_ones), axis=1)									# N x (I+1)
+	## Z
+	array_ones = (np.array([np.ones(N)])).T
+	Z = np.concatenate((Z, array_ones), axis=1)									# N x (B+1)
+	"""
+
+
+
+
+
+
 
 
 	##=====================================================================================================================
 	##==== cis-
 	##=====================================================================================================================
 	Y_cis = 0.5 * Y
+	Y_cellfactor = 0.5 * Y
+	## NOTE: we assume half/half signal from cis- and factors, for cis- genes; but all signal from factors for non-cis- genes
+	for k in range(K):
+		for i in range(len(Y[k])):
+			for j in range(J):
+				start = mapping_cis[j][0]
+				end = mapping_cis[j][1]
+				if (end - start + 1) == 0:
+					Y_cis[k][i][j] = 0
+					Y_cellfactor[k][i][j] = Y[k][i][j]
+				else:
+					Y_cis[k][i][j] = 0.5 * Y[k][i][j]
+					Y_cellfactor[k][i][j] = 0.5 * Y[k][i][j]
+
 	for j in range(J):
 		#X_sub = []
 		#start = mapping_cis[j][0]
@@ -234,11 +335,18 @@ if __name__ == "__main__":
 		#array_ones = (np.array([np.ones(N)])).T
 		#X_sub = np.concatenate((X_sub, array_ones), axis=1)					# N x (amount+1)
 
+		start = mapping_cis[j][0]
+		end = mapping_cis[j][1]
+
+		## for non-cis genes
+		if (end - start + 1) == 0:
+			continue
+
+		## for cis- genes
 		for k in range(K):
 			#get the X_sub for the avaliable samples for this tissue
 			X_sub = []
-			start = mapping_cis[j][0]
-			end = mapping_cis[j][1]
+
 			for n in range(len(Y_pos[k])):
 				pos = Y_pos[k][n]
 				X_sub.append(X[pos][start:end+1])
@@ -265,7 +373,7 @@ if __name__ == "__main__":
 	##=====================================================================================================================
 	##==== cell factor
 	##=====================================================================================================================
-	Y_cellfactor = 0.5 * Y
+	##Y_cellfactor = 0.5 * Y
 	##
 	## init_beta_cellfactor2
 	##
@@ -387,7 +495,6 @@ if __name__ == "__main__":
 
 
 
-
 	##=====================================================================================================================
 	##==== residual for batch
 	##=====================================================================================================================
@@ -413,15 +520,21 @@ if __name__ == "__main__":
 		##=============
 		Y_cis = []
 		for j in range(J):
-			X_sub = []
 			start = mapping_cis[j][0]
 			end = mapping_cis[j][1]
-			X_sub = X[:, start:end+1]
-			array_ones = (np.array([np.ones(N)])).T
-			X_sub = np.concatenate((X_sub, array_ones), axis=1)						# N x (amount+1)
-			init_beta_sub = init_beta_cis[k][j]										# 1 x (amount+1)
-			Y_sub = np.dot(X_sub, init_beta_sub)									# 1 x N
-			Y_cis.append(Y_sub)
+
+			## for non-cis- and cis- genes
+			if (end - start + 1) == 0:
+				temp = np.zeros(N)
+				Y_cis.append(temp)
+			else:
+				X_sub = []
+				X_sub = X[:, start:end+1]
+				array_ones = (np.array([np.ones(N)])).T
+				X_sub = np.concatenate((X_sub, array_ones), axis=1)						# N x (amount+1)
+				init_beta_sub = init_beta_cis[k][j]										# 1 x (amount+1)
+				Y_sub = np.dot(X_sub, init_beta_sub)									# 1 x N
+				Y_cis.append(Y_sub)
 		Y_cis = np.array(Y_cis)
 		Y_cis = Y_cis.T
 		print "Y_cis shape:",
@@ -469,13 +582,13 @@ if __name__ == "__main__":
 
 
 	##=====================================================================================================================
-	##==== save the data
+	##==== save the data (real data)
 	##=====================================================================================================================
 	##==== save data (NOTE: not do, as too much space to cost)
-	#np.save("./data_real_init/beta_cis", init_beta_cis)
-	#np.save("./data_real_init/beta_cellfactor1", init_beta_cellfactor1)
-	#np.save("./data_real_init/beta_cellfactor2", init_beta_cellfactor2)
-	#np.save("./data_real_init/beta_batch", init_beta_batch)
+	np.save("./data_real_init/beta_cis", init_beta_cis)
+	np.save("./data_real_init/beta_cellfactor1", init_beta_cellfactor1)
+	np.save("./data_real_init/beta_cellfactor2", init_beta_cellfactor2)
+	np.save("./data_real_init/beta_batch", init_beta_batch)
 
 	##==== reformat data
 	reformat_beta_cis(init_beta_cis, "./data_real_init/beta_cis.txt")
@@ -485,11 +598,27 @@ if __name__ == "__main__":
 
 
 
+	"""
+	##=====================================================================================================================
+	##==== save the data (simu)
+	##=====================================================================================================================
+	##==== save data (NOTE: not do, as too much space to cost)
+	#np.save("./data_real_init/beta_cis", init_beta_cis)
+	#np.save("./data_real_init/beta_cellfactor1", init_beta_cellfactor1)
+	#np.save("./data_real_init/beta_cellfactor2", init_beta_cellfactor2)
+	#np.save("./data_real_init/beta_batch", init_beta_batch)
+
+	##==== reformat data
+	reformat_beta_cis(init_beta_cis, "./data_simu_init/beta_cis.txt")
+	reformat_matrix(init_beta_cellfactor1, "./data_simu_init/beta_cellfactor1.txt")
+	reformat_tensor(init_beta_cellfactor2, "./data_simu_init/beta_cellfactor2.txt")
+	reformat_matrix(init_beta_batch, "./data_simu_init/beta_batch.txt")
+	"""
+
+
 
 
 	print "done..."
-
-
 
 
 

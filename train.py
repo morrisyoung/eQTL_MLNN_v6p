@@ -11,9 +11,11 @@
 
 
 
+
 import numpy as np
 import math
 import timeit
+import sys
 
 
 
@@ -328,6 +330,15 @@ def cal_error(k):
 if __name__ == "__main__":
 
 
+
+
+	##==== get the training rate
+	rate_learn = float(sys.argv[1])
+	print "rate_learn is:", rate_learn
+
+
+
+
 	print "now training..."
 
 	##============
@@ -415,6 +426,17 @@ if __name__ == "__main__":
 
 				##==== timer
 				start_time = timeit.default_timer()
+
+
+
+				##============================================
+				## DEBUG
+				error = cal_error(k)
+				print "[error_before] current total error:",
+				print error
+				##============================================
+
+
 
 				forward_backward_gd(k)
 				error = cal_error(k)

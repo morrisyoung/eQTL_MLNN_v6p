@@ -39,6 +39,7 @@ void mem_gpu_init()
 	int dimension2;
 
 
+
 	//== d_X_batch, d_Z_batch, d_Y_batch, d_Y_batch_exp, d_cellfactor_batch, d_cellfactor_batch_new
 	//
 	dimension2 = X.get_dimension2();
@@ -55,7 +56,6 @@ void mem_gpu_init()
 	checkCudaErrors(cudaMalloc((void **) &d_cellfactor_batch, (size_batch*D)*sizeof(float)));
 	//
 	checkCudaErrors(cudaMalloc((void **) &d_cellfactor_batch_new, (size_batch*(D+1))*sizeof(float)));
-
 
 
 
@@ -76,10 +76,15 @@ void mem_gpu_init()
 	int amount = beta_cis.get_amount();
 	checkCudaErrors(cudaMalloc((void **) &d_list_beta_cis_geneindex, amount*sizeof(int)));
 	checkCudaErrors(cudaMemcpy(d_list_beta_cis_geneindex, list_beta_cis_geneindex, amount*sizeof(int), cudaMemcpyHostToDevice));
+	//== list_indi_cis, d_list_indi_cis
+	int * list_indi_cis = mapping_cis.get_list_indi_cis();
+	checkCudaErrors(cudaMalloc((void **) &d_list_indi_cis, J*sizeof(int)));
+	checkCudaErrors(cudaMemcpy(d_list_indi_cis, list_indi_cis, J*sizeof(int), cudaMemcpyHostToDevice));
 	//== d_beta_cis_sub, d_der_cis_sub
 	//int amount = beta_cis.get_amount();
 	checkCudaErrors(cudaMalloc((void **) &d_beta_cis_sub, amount*sizeof(float)));
 	checkCudaErrors(cudaMalloc((void **) &d_der_cis_sub, amount*sizeof(float)));
+
 
 
 	//== d_beta_batch, d_beta_batch_reshape, d_der_batch
@@ -104,8 +109,6 @@ void mem_gpu_init()
 	checkCudaErrors(cudaMalloc((void **) &d_der_cellfactor2_sub, (dimension1_beta_cellfactor2*dimension2_beta_cellfactor2)*sizeof(float)));
 
 
-
-
 	return;
 }
 
@@ -125,6 +128,7 @@ void mem_gpu_release()
 	checkCudaErrors(cudaFree(d_list_cis_end));
 	checkCudaErrors(cudaFree(d_list_beta_cis_start));
 	checkCudaErrors(cudaFree(d_list_beta_cis_geneindex));
+	checkCudaErrors(cudaFree(d_list_indi_cis));
 	checkCudaErrors(cudaFree(d_beta_cis_sub));
 	checkCudaErrors(cudaFree(d_der_cis_sub));
 

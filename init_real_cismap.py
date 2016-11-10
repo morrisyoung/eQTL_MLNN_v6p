@@ -96,15 +96,20 @@ if __name__ == "__main__":
 		end = 0
 
 		index = 0
-		while 1:
-			if abs(list_snp_pos[chr-1][index] - tss) <= 8000000:				# NOTE: define the cis- region
+		while index < I:
+			if abs(list_snp_pos[chr-1][index] - tss) <= 1000000:				# NOTE: define the cis- region
 				start = index
 				break
 
 			index += 1
 
+		## no cis- region genes
+		if index == I:
+			mapping_cis.append((0, -1))
+			continue
+
 		while 1:
-			if abs(list_snp_pos[chr-1][index] - tss) > 8000000:					# NOTE: define the cis- region
+			if abs(list_snp_pos[chr-1][index] - tss) > 1000000:					# NOTE: define the cis- region
 				end = index - 1
 				break
 
@@ -120,6 +125,14 @@ if __name__ == "__main__":
 
 	##==== mapping back to the whole-genome list
 	for j in range(len(list_gene)):
+
+		## non-cis gene
+		start = mapping_cis[j][0]
+		end = mapping_cis[j][1]
+		if (end - start + 1) == 0:
+			continue
+
+		## cis- gene
 		gene = list_gene[j]
 		chr = rep_gene_tss[gene][0]
 
@@ -133,6 +146,8 @@ if __name__ == "__main__":
 	reformat_mapping_cis(mapping_cis, "./data_real_data/mapping_cis.txt")
 
 
+
+
 	##==== test
 	list_amount = []
 	for i in range(len(mapping_cis)):
@@ -142,8 +157,6 @@ if __name__ == "__main__":
 
 	print np.amin(list_amount)
 	print np.amax(list_amount)
-
-
 
 
 

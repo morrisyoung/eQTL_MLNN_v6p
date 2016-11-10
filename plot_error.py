@@ -14,13 +14,12 @@ if __name__=="__main__":
 
 
 	##==== total likelihood
-	"""
 	arr = np.load("./result/list_error.npy")
+
+
+
+
 	"""
-
-
-
-
 	arr = []
 	file = open("./result/error_total_online.txt", 'r')
 	while 1:
@@ -30,6 +29,7 @@ if __name__=="__main__":
 
 		arr.append(float(line))
 	file.close()
+	"""
 
 
 
@@ -63,7 +63,31 @@ if __name__=="__main__":
 	print arr[:10]
 	print len(list_tissue_color)
 	print len(list_tissue)
-	plt.plot(arr, 'r')
+	plt.plot(arr, 'r-')
+
+	## the total variance of samples for this simulation set
+	plt.plot([1489807752.51]*len(arr), 'b-')
+
+
+
+
+	"""
+	##==== plot per tissue errir curve
+	arr_sub = []
+	K = 13
+	num_iter_in = 100
+	pos = num_iter_in*3			# 0 range to 12
+	while pos+num_iter_in<=len(arr):
+		temp = arr[pos:pos+num_iter_in]
+		temp = temp.tolist()
+		arr_sub = arr_sub + temp
+		pos += num_iter_in*K
+	print len(arr_sub)
+	plt.plot(arr_sub[:], 'r')
+	"""
+
+
+
 
 
 
@@ -97,13 +121,14 @@ if __name__=="__main__":
 
 
 
-
-
 	plt.xlabel("number of batches")
 	plt.ylabel("total squared error in current tissue")
 	plt.title("total squared error v.s. num of batches")
 	plt.grid()
 	plt.show()
+
+
+
 
 
 
